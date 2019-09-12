@@ -63,6 +63,9 @@ import static com.navercorp.pinpoint.common.trace.ServiceTypeProperty.*;
  * <tr><td>1110</td><td>DUBBO_PROVIDER</td></tr>
  * <tr><td>1120</td><td>UNDERTOW</td></tr>
  * <tr><td>1121</td><td>UNDERTOW_METHOD</td></tr>
+ * <tr><td>1122</td><td>ITRACING_AGENT</td></tr>
+ * <tr><td>1123</td><td>ITRACING_COLLECTOR</td></tr>
+ * <tr><td>1124</td><td>ITRACING_WEB</td></tr>
  * <tr><td>1126</td><td>UNDERTOW_SERVLET_METHOD</td></tr>
  *
  * <tr><td>1130</td><td>GRPC_SERVER</td></tr>
