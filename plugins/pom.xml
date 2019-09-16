@@ -89,7 +89,7 @@
         <module>hbase</module>
         <module>openwhisk</module>
         <module>node-js</module>
-        <module>itracing</module>
+        <module>pinpoint-itracing-plugin</module>
     </modules>
 
     <dependencies>
