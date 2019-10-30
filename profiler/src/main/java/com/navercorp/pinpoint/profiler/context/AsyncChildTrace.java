@@ -48,6 +48,7 @@ public class AsyncChildTrace implements Trace {
 
     private final TraceRoot traceRoot;
     private final LocalAsyncId localAsyncId;
+    private SequenceOverFlowStatus sequenceOverFlowStatus = SequenceOverFlowStatus.WITHIN;
 
     public AsyncChildTrace(final TraceRoot traceRoot, CallStack<SpanEvent> callStack, Storage storage, boolean sampling,
                              SpanRecorder spanRecorder, WrappedSpanEventRecorder wrappedSpanEventRecorder, final LocalAsyncId localAsyncId) {
@@ -94,9 +95,21 @@ public class AsyncChildTrace implements Trace {
             final SpanEvent dummy = dummySpanEvent();
             return dummy;
         }
+
+        if (sequenceOverFlowStatus == SequenceOverFlowStatus.BOUNDARY) {
+            sequenceOverFlowStatus = SequenceOverFlowStatus.EXCEEDED;
+        }
+        if (sequenceOverFlowStatus == SequenceOverFlowStatus.EXCEEDED) {
+            return dummySpanEvent();
+        }
+
         // Set properties for the case when stackFrame is not used as part of Span.
         final SpanEvent spanEvent = newSpanEvent(stackId);
         this.callStack.push(spanEvent);
+        if (spanEvent.getSequence() == Short.MAX_VALUE) {
+            logger.error("Sequence overflow, will not begin any other trace");
+            sequenceOverFlowStatus = SequenceOverFlowStatus.BOUNDARY;
+        }
         return spanEvent;
     }
 
@@ -201,7 +214,7 @@ public class AsyncChildTrace implements Trace {
 
     @Override
     public boolean canSampled() {
-        return true;
+        return sequenceOverFlowStatus != SequenceOverFlowStatus.EXCEEDED;
     }
 
     @Override
@@ -296,6 +309,10 @@ public class AsyncChildTrace implements Trace {
             this.scopePool = new DefaultTraceScopePool();
         }
         return scopePool.add(name);
+    }
+
+    @Override public SequenceOverFlowStatus getSequenceOverFlowStatus() {
+        return this.sequenceOverFlowStatus;
     }
 
     @Override

@@ -142,4 +142,8 @@ public class DisableTrace implements Trace {
     public TraceScope addScope(String name) {
         return scopePool.add(name);
     }
+
+    @Override public SequenceOverFlowStatus getSequenceOverFlowStatus() {
+        return null;
+    }
 }

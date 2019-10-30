@@ -54,6 +54,7 @@ public final class DefaultTrace implements Trace {
     private final Span span;
     private final ActiveTraceHandle activeTraceHandle;
 
+    private SequenceOverFlowStatus sequenceOverFlowStatus = SequenceOverFlowStatus.WITHIN;
 
     public DefaultTrace(Span span, CallStack<SpanEvent> callStack, Storage storage, boolean sampling,
                         SpanRecorder spanRecorder, WrappedSpanEventRecorder wrappedSpanEventRecorder, ActiveTraceHandle activeTraceHandle) {
@@ -104,9 +105,21 @@ public final class DefaultTrace implements Trace {
             final SpanEvent dummy = dummySpanEvent();
             return dummy;
         }
+
+        if (sequenceOverFlowStatus == SequenceOverFlowStatus.BOUNDARY) {
+            sequenceOverFlowStatus = SequenceOverFlowStatus.EXCEEDED;
+        }
+        if (sequenceOverFlowStatus == SequenceOverFlowStatus.EXCEEDED) {
+            return dummySpanEvent();
+        }
+
         // Set properties for the case when stackFrame is not used as part of Span.
         final SpanEvent spanEvent = newSpanEvent(stackId);
         this.callStack.push(spanEvent);
+        if (spanEvent.getSequence() == Short.MAX_VALUE) {
+            logger.error("Sequence reach Short.MAX_VALUE, will not begin any other trace");
+            sequenceOverFlowStatus = SequenceOverFlowStatus.BOUNDARY;
+        }
         return spanEvent;
     }
 
@@ -225,7 +238,7 @@ public final class DefaultTrace implements Trace {
 
     @Override
     public boolean canSampled() {
-        return true;
+        return sequenceOverFlowStatus != SequenceOverFlowStatus.EXCEEDED;
     }
 
     @Override
@@ -311,6 +324,10 @@ public final class DefaultTrace implements Trace {
             this.scopePool = new DefaultTraceScopePool();
         }
         return scopePool.add(name);
+    }
+
+    @Override public SequenceOverFlowStatus getSequenceOverFlowStatus() {
+        return this.sequenceOverFlowStatus;
     }
 
     @Override

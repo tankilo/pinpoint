@@ -145,6 +145,11 @@ public class AsyncTrace implements Trace {
     }
 
     @Override
+    public SequenceOverFlowStatus getSequenceOverFlowStatus() {
+        return this.trace.getSequenceOverFlowStatus();
+    }
+
+    @Override
     public String toString() {
         return "AsyncTrace{" +
                 "traceRoot=" + traceRoot +
