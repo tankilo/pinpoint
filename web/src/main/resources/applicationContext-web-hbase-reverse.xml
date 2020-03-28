@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+   <bean id="hbaseConfigurationReverse" class="com.navercorp.pinpoint.common.hbase.HbaseConfigurationFactoryBean">
+        <property name="properties">
+            <props>
+                <prop key="hbase.zookeeper.quorum">${reverse.hbase.client.host}</prop>
+                <prop key="hbase.zookeeper.property.clientPort">${reverse.hbase.client.port}</prop>
+
+                <!--Root ZNode for HBase in ZooKeeper.-->
+                <prop key="zookeeper.znode.parent">${reverse.hbase.zookeeper.znode.parent:/hbase}</prop>
+
+                <!-- hbase default:true -->
+                <prop key="hbase.ipc.client.tcpnodelay">${hbase.ipc.client.tcpnodelay}</prop>
+                <!-- hbase default:60000 -->
+                <prop key="hbase.rpc.timeout">${hbase.rpc.timeout}</prop>
+                <!-- hbase default:Integer.MAX_VALUE -->
+                <prop key="hbase.client.operation.timeout">${hbase.client.operation.timeout}</prop>
+
+                <!-- hbase socket read timeout. default: 200000-->
+                <prop key="hbase.ipc.client.socket.timeout.read">${hbase.ipc.client.socket.timeout.read}</prop>
+                <!-- socket write timeout. hbase default: 600000-->
+                <prop key="hbase.ipc.client.socket.timeout.write">${hbase.ipc.client.socket.timeout.write}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="hbaseThreadPoolReverse" class="com.navercorp.pinpoint.common.server.util.PinpointThreadPoolExecutorFactoryBean">
+        <property name="corePoolSize" value="${hbase.client.thread.max}"/>
+        <property name="maxPoolSize" value="${hbase.client.thread.max}"/>
+        <property name="queueCapacity" value="${hbase.client.threadPool.queueSize}"/>
+        <property name="threadNamePrefix" value="Reverse-Pinpoint-HConnectionExecutor-"/>
+        <property name="daemon" value="true"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="true"/>
+        <property name="awaitTerminationSeconds" value="10"/>
+        <property name="preStartAllCoreThreads" value="true"/>
+    </bean>
+
+    <bean id="connectionFactoryReverse" class="com.navercorp.pinpoint.common.hbase.ConnectionFactoryBean">
+        <constructor-arg type="org.apache.hadoop.conf.Configuration" ref="hbaseConfigurationReverse"/>
+        <constructor-arg type="java.util.concurrent.ExecutorService" ref="hbaseThreadPoolReverse"/>
+    </bean>
+
+    <bean id="hbaseTableFactoryReverse" class="com.navercorp.pinpoint.common.hbase.HbaseTableFactory">
+        <constructor-arg ref="connectionFactoryReverse"/>
+    </bean>
+
+    <bean id="hbaseTemplateReverse" class="com.navercorp.pinpoint.common.hbase.HbaseTemplate2">
+        <property name="configuration" ref="hbaseConfigurationReverse"/>
+        <property name="tableFactory" ref="hbaseTableFactoryReverse"/>
+        <property name="enableParallelScan" value="${hbase.client.parallel.scan.enable:false}"/>
+        <property name="maxThreads" value="${hbase.client.parallel.scan.maxthreads:16}"/>
+        <property name="maxThreadsPerParallelScan" value="${hbase.client.parallel.scan.maxthreadsperscan:4}"/>
+    </bean>
+
+    <aop:aspectj-autoproxy proxy-target-class="true" />
+    <bean id="hbaseDaoReportingAspect" class="com.navercorp.pinpoint.web.dao.HbaseTemplateReverseAspect" />
+
+</beans>

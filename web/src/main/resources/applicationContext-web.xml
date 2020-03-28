@@ -62,6 +62,7 @@
 
     <import resource="classpath:applicationContext-web-profile.xml" />
     <import resource="classpath:applicationContext-web-hbase.xml" />
+    <import resource="classpath:applicationContext-web-hbase-reverse.xml" />
     <import resource="classpath:applicationContext-web-datasource.xml" />
     <import resource="classpath:applicationContext-web-dao-config.xml" />
     <import resource="classpath:applicationContext-web-cache.xml" />

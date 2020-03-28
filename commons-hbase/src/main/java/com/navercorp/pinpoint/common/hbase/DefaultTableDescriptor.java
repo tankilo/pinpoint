@@ -34,12 +34,12 @@ public class DefaultTableDescriptor<T extends HbaseColumnFamily> implements Tabl
     }
 
     @Override
-    public final byte[] getColumnFamilyName() {
+    public byte[] getColumnFamilyName() {
         return hbaseColumnFamily.getName();
     }
 
     @Override
-    public final TableName getTableName() {
+    public TableName getTableName() {
         return tableNameProvider.getTableName(getColumnFamily().getTable());
     }
 
