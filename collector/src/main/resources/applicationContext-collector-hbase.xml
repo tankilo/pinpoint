@@ -94,8 +94,8 @@
     </bean>
 
     <bean id="traceV2Hasher" class="com.navercorp.pinpoint.common.hbase.distributor.RangeOneByteSimpleHash">
-        <constructor-arg type="int" value="32"/>
-        <constructor-arg type="int" value="40"/>
+        <constructor-arg type="int" value="68"/>
+        <constructor-arg type="int" value="76"/>
         <constructor-arg type="int" value="256"/>
     </bean>
 
@@ -106,7 +106,7 @@
     <bean id="applicationStatRangeHasher" class="com.navercorp.pinpoint.common.hbase.distributor.RangeOneByteSimpleHash">
         <constructor-arg type="int" value="0"/>
         <constructor-arg type="int" value="33"/>
-        <constructor-arg type="int" value="64"/>
+        <constructor-arg type="int" value="1"/>
     </bean>
 
     <bean id="agentStatV2RowKeyDistributor" class="com.sematext.hbase.wd.RowKeyDistributorByHashPrefix">
@@ -116,7 +116,7 @@
     <bean id="agentStatV2RangeHasher" class="com.navercorp.pinpoint.common.hbase.distributor.RangeOneByteSimpleHash">
         <constructor-arg type="int" value="0"/>
         <constructor-arg type="int" value="33"/>
-        <constructor-arg type="int" value="64"/>
+        <constructor-arg type="int" value="12"/>
     </bean>
 
     <bean id="metadataRowKeyDistributor" class="com.sematext.hbase.wd.RowKeyDistributorByHashPrefix">
