@@ -174,8 +174,6 @@ interface IFilter {
 }
 
 interface ISelectedTarget {
-    endTime: string;
-    period: string;
     isNode?: boolean;
     isLink?: boolean;
     isMerged: boolean;
@@ -397,6 +395,7 @@ interface IUserProfile {
     userId: string;
     name: string;
     department?: string;
+    phoneCountryCode?: string;
     phoneNumber?: string;
     email?: string;
 }

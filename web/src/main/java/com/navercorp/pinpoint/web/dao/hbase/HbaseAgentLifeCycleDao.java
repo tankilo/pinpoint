@@ -36,7 +36,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -54,17 +53,14 @@ public class HbaseAgentLifeCycleDao implements AgentLifeCycleDao {
 
     private static final int SCANNER_CACHING = 20;
 
-    @Autowired
-    private HbaseOperations2 hbaseOperations2;
+    private final HbaseOperations2 hbaseOperations2;
 
-    @Autowired
-    @Qualifier("agentLifeCycleMapper")
-    private RowMapper<AgentLifeCycleBo> agentLifeCycleMapper;
+    private final RowMapper<AgentLifeCycleBo> agentLifeCycleMapper;
 
-    @Autowired
-    private TableDescriptor<HbaseColumnFamily.AgentLifeCycleStatus> descriptor;
+    private final TableDescriptor<HbaseColumnFamily.AgentLifeCycleStatus> descriptor;
 
-    public HbaseAgentLifeCycleDao(TableDescriptor<HbaseColumnFamily.AgentLifeCycleStatus> descriptor, HbaseOperations2 hbaseOperations2, RowMapper<AgentLifeCycleBo> agentLifeCycleMapper) {
+    public HbaseAgentLifeCycleDao(TableDescriptor<HbaseColumnFamily.AgentLifeCycleStatus> descriptor, HbaseOperations2 hbaseOperations2,
+                                  @Qualifier("agentLifeCycleMapper")RowMapper<AgentLifeCycleBo> agentLifeCycleMapper) {
         this.descriptor = Objects.requireNonNull(descriptor, "descriptor");
         this.hbaseOperations2 = Objects.requireNonNull(hbaseOperations2, "hbaseOperations2");
         this.agentLifeCycleMapper = Objects.requireNonNull(agentLifeCycleMapper, "agentLifeCycleMapper");

@@ -20,6 +20,7 @@ import com.navercorp.pinpoint.common.server.bo.SpanBo;
 import com.navercorp.pinpoint.common.trace.ServiceType;
 import com.navercorp.pinpoint.loader.service.ServiceTypeRegistryService;
 
+import com.navercorp.pinpoint.common.server.util.pair.LongPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -42,8 +43,8 @@ public class LinkMap {
     private final List<Node> duplicatedNodeList;
 
     public LinkMap(MultiValueMap<LongPair, Node> spanToLinkMap, List<Node> duplicatedNodeList) {
-        this.spanToLinkMap = spanToLinkMap;
-        this.duplicatedNodeList = duplicatedNodeList;
+        this.spanToLinkMap = Objects.requireNonNull(spanToLinkMap, "spanToLinkMap");
+        this.duplicatedNodeList = Objects.requireNonNull(duplicatedNodeList, "duplicatedNodeList");
     }
 
     public static LinkMap buildLinkMap(List<Node> nodeList, TraceState traceState, long collectorAcceptTime, ServiceTypeRegistryService serviceTypeRegistryService) {
@@ -96,47 +97,4 @@ public class LinkMap {
         return duplicatedNodeList;
     }
 
-    private static class LongPair {
-        private final long first;
-        private final long second;
-
-        public LongPair(long first, long second) {
-            this.first = first;
-            this.second = second;
-        }
-
-        public long getFirst() {
-            return first;
-        }
-
-        public long getSecond() {
-            return second;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof LongPair)) return false;
-
-            LongPair that = (LongPair) o;
-
-            if (first != that.first) return false;
-            return second == that.second;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) (first ^ (first >>> 32));
-            result = 31 * result + (int) (second ^ (second >>> 32));
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "LongPair{" +
-                    "first=" + first +
-                    ", second=" + second +
-                    '}';
-        }
-    }
 }

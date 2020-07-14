@@ -16,18 +16,21 @@
 
 package com.navercorp.pinpoint.common.server.util;
 
-import com.navercorp.pinpoint.loader.service.TraceMetadataLoaderService;
-import com.navercorp.pinpoint.common.trace.AnnotationKeyMatcherLocator;
-import com.navercorp.pinpoint.common.trace.AnnotationKeyLocator;
+import com.navercorp.pinpoint.common.Version;
 import com.navercorp.pinpoint.common.profiler.trace.AnnotationKeyMatcherRegistry;
 import com.navercorp.pinpoint.common.profiler.trace.AnnotationKeyRegistry;
-import com.navercorp.pinpoint.common.trace.ServiceTypeLocator;
 import com.navercorp.pinpoint.common.profiler.trace.ServiceTypeRegistry;
 import com.navercorp.pinpoint.common.profiler.trace.TraceMetadataLoader;
+import com.navercorp.pinpoint.common.trace.AnnotationKeyLocator;
+import com.navercorp.pinpoint.common.trace.AnnotationKeyMatcherLocator;
+import com.navercorp.pinpoint.common.trace.ServiceTypeLocator;
 import com.navercorp.pinpoint.common.trace.TraceMetadataProvider;
 import com.navercorp.pinpoint.common.util.ArrayUtils;
+import com.navercorp.pinpoint.common.util.Filter;
 import com.navercorp.pinpoint.common.util.logger.CommonLoggerFactory;
 import com.navercorp.pinpoint.loader.plugins.trace.TraceMetadataProviderLoader;
+import com.navercorp.pinpoint.loader.service.TraceMetadataLoaderService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -47,6 +50,7 @@ import java.util.Objects;
 /**
  * @author Woonduk Kang(emeroad)
  * @author HyunGil Jeong
+ * @author Taejin Koo
  */
 public class ServerTraceMetadataLoaderService implements TraceMetadataLoaderService {
 
@@ -71,7 +75,7 @@ public class ServerTraceMetadataLoaderService implements TraceMetadataLoaderServ
         List<URL> typeProviderUrls = getTypeProviderUrls(classLoader, typeProviderPaths);
         logger.info("Additional type providers : {}", typeProviderUrls);
 
-        TraceMetadataProviderLoader traceMetadataProviderLoader = new TraceMetadataProviderLoader(typeProviderUrls);
+        TraceMetadataProviderLoader traceMetadataProviderLoader = new TraceMetadataProviderLoader(typeProviderUrls, new ServerVersionPluginProviderUrlFilter());
         List<TraceMetadataProvider> traceMetadataProviderList = traceMetadataProviderLoader.load(classLoader);
 
         TraceMetadataLoader traceMetadataLoader = new TraceMetadataLoader(commonLoggerFactory);
@@ -124,4 +128,21 @@ public class ServerTraceMetadataLoaderService implements TraceMetadataLoaderServ
     public AnnotationKeyMatcherLocator getAnnotationKeyMatcherLocator() {
         return annotationKeyMatcherRegistry;
     }
+
+    private static class ServerVersionPluginProviderUrlFilter implements Filter<URL> {
+
+        @Override
+        public boolean filter(URL url) {
+            if (url == null || url.getFile() == null) {
+                return FILTERED;
+            }
+
+            if (url.getFile().contains(Version.VERSION + ".jar")) {
+                return NOT_FILTERED;
+            }
+
+            return FILTERED;
+        }
+    }
+
 }

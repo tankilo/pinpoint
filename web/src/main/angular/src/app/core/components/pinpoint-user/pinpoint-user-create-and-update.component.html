@@ -1,4 +1,4 @@
-<div [hidden]="!showCreate" class="l-wrapper">
+<div class="l-wrapper">
     <button class="btn btn-black l-close" (click)="onClose(); formDir.resetForm();"><i class="fas fa-times"></i></button>
     <h1 class="l-title">Pinpoint User</h1> 
     <form class="l-form" [formGroup]="pinpointUserForm" #formDir="ngForm" (ngSubmit)="onCreateOrUpdate()">
@@ -28,7 +28,11 @@
         </div>
         <div class="l-field-wrapper">
             <label class="l-label" for="phoneNumber">{{i18nLabel.PHONE_LABEL}}</label>
-            <input type="text" class="l-input" id="phoneNumber" formControlName="phoneNumber">
+            <input type="text" class="l-input" id="phoneNumber" formControlName="phoneNumber"
+                (keyup)="onKeyup()"
+                (countrychange)="onCountryChange()"
+                #telInput>
+            <input type="hidden" formControlName="phoneCountryCode">
             <pp-form-field-error-message
                 [control]="pinpointUserForm.get('phoneNumber')"
                 [errorMessage]="i18nGuide['phoneNumber']">
@@ -42,6 +46,6 @@
                 [errorMessage]="i18nGuide['email']">
             </pp-form-field-error-message>
         </div>
-        <button type="submit" class="btn btn-blue l-create" [class.btn-gray]="pinpointUserForm.invalid" [disabled]="pinpointUserForm.invalid">OK</button>
+        <button type="submit" class="btn btn-blue l-create">OK</button>
     </form>
 </div>

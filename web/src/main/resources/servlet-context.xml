@@ -12,8 +12,8 @@
     <bean id="webPropertyConfigurer" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
         <property name="locations">
             <list>
-                <value>classpath:pinpoint-web.properties</value>
-                <value>classpath:profiles/${pinpoint.profiles.active}/pinpoint-web-env.properties</value>
+                <value>classpath:pinpoint-web-root.properties</value>
+                <value>classpath:profiles/${pinpoint.profiles.active}/pinpoint-web.properties</value>
                 <value>file:#{ systemProperties['pinpoint.web.config.location'] ?: '-Dpinpoint.web.config.location does not set' }</value>
             </list>
         </property>
@@ -36,11 +36,6 @@
     </context:component-scan>
 
     <bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
-        <!-- another filter caches -->
-        <property name="disableCaching" value="false"/>
-    </bean>
-
-    <bean id="jsonpView" class="com.navercorp.pinpoint.web.util.MappingJackson2JsonpView">
         <!-- another filter caches -->
         <property name="disableCaching" value="false"/>
     </bean>

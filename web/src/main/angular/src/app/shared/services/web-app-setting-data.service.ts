@@ -22,7 +22,7 @@ export class WebAppSettingDataService {
         FAVORLIITE_APPLICATION_LIST: 'favoriteApplicationList',
         TIMEZONE: 'timezone',
         DATE_FORMAT: 'dateFormat',
-        LIST_HANDLE_POSITION: 'listHandlePosition',
+        SPLIT_SIZE: 'splitSize',
         LAYER_HEIGHT: 'layerHeight',
         USER_DEFAULT_INBOUND: 'userDefaultInbound',
         USER_DEFAULT_OUTBOUND: 'userDefaultOutbound',
@@ -31,6 +31,7 @@ export class WebAppSettingDataService {
         CHART_NUM_PER_ROW: 'chartNumPerRow',
         APPLICATION_CHART_LAYOUT_INFO: 'applicationChartLayoutInfo',
         AGENT_CHART_LAYOUT_INFO: 'agentChartLayoutInfo',
+        LANGUAGE: 'language',
     };
     private IMAGE_PATH = './assets/img/';
     private IMAGE_EXT = '.png';
@@ -45,6 +46,7 @@ export class WebAppSettingDataService {
     ) {
         this.store.dispatch(new Actions.ChangeTimezone(this.getTimezone()));
         this.store.dispatch(new Actions.ChangeDateFormat(this.getDateFormat()));
+        this.store.dispatch(new Actions.ChangeLanguage(this.getLanguage()));
         this.store.pipe(
             select(STORE_KEY.APPLICATION_LIST),
             filter((appList: IApplication[]) => appList.length !== 0),
@@ -179,11 +181,11 @@ export class WebAppSettingDataService {
     getDateFormatList(): string[][] {
         return this.componentDefaultSettingDataService.getDateFormatList();
     }
-    setListHandlePosition(value: number[]): void {
-        this.localStorageService.set(WebAppSettingDataService.KEYS.LIST_HANDLE_POSITION, value);
+    setSplitSize(value: number[]): void {
+        this.localStorageService.set(WebAppSettingDataService.KEYS.SPLIT_SIZE, value);
     }
-    getListHandlePosition(): number[] {
-        return this.localStorageService.get(WebAppSettingDataService.KEYS.LIST_HANDLE_POSITION) || [30, 70];
+    getSplitSize(): number[] {
+        return this.localStorageService.get(WebAppSettingDataService.KEYS.SPLIT_SIZE) || [30, 70];
     }
     setLayerHeight(value: number): void {
         this.localStorageService.set(WebAppSettingDataService.KEYS.LAYER_HEIGHT, value);
@@ -259,5 +261,11 @@ export class WebAppSettingDataService {
     }
     setAgentLayoutInfo(chartInfo: IChartLayoutInfoResponse): void {
         this.localStorageService.set(WebAppSettingDataService.KEYS.AGENT_CHART_LAYOUT_INFO, chartInfo);
+    }
+    setLanguage(value: string): void {
+        this.localStorageService.set(WebAppSettingDataService.KEYS.LANGUAGE, value);
+    }
+    private getLanguage(): string {
+        return this.localStorageService.get(WebAppSettingDataService.KEYS.LANGUAGE) || window.navigator.language.substring(0, 2);
     }
 }

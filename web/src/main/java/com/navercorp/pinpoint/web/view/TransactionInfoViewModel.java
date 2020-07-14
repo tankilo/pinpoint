@@ -15,6 +15,19 @@
  */
 package com.navercorp.pinpoint.web.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.navercorp.pinpoint.common.profiler.util.TransactionId;
+import com.navercorp.pinpoint.common.profiler.util.TransactionIdUtils;
+import com.navercorp.pinpoint.common.server.util.DateTimeFormatUtils;
+import com.navercorp.pinpoint.web.applicationmap.link.Link;
+import com.navercorp.pinpoint.web.applicationmap.nodes.Node;
+import com.navercorp.pinpoint.web.calltree.span.TraceState;
+import com.navercorp.pinpoint.web.config.LogConfiguration;
+import com.navercorp.pinpoint.web.vo.callstacks.Record;
+import com.navercorp.pinpoint.web.vo.callstacks.RecordSet;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,35 +35,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.navercorp.pinpoint.common.profiler.util.TransactionId;
-import com.navercorp.pinpoint.common.profiler.util.TransactionIdUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.navercorp.pinpoint.common.util.DateUtils;
-import com.navercorp.pinpoint.web.applicationmap.link.Link;
-import com.navercorp.pinpoint.web.applicationmap.nodes.Node;
-import com.navercorp.pinpoint.web.calltree.span.TraceState;
-import com.navercorp.pinpoint.web.config.LogConfiguration;
-import com.navercorp.pinpoint.web.vo.callstacks.Record;
-import com.navercorp.pinpoint.web.vo.callstacks.RecordSet;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * @author jaehong.kim
  * @author minwoo.jung
  */
 public class TransactionInfoViewModel {
 
-    private TransactionId transactionId;
-    private long spanId;
-    private Collection<Node> nodes;
-    private Collection<Link> links;
-    private RecordSet recordSet;
-    private TraceState.State completeState;
+    private final TransactionId transactionId;
+    private final long spanId;
+    private final Collection<Node> nodes;
+    private final Collection<Link> links;
+    private final RecordSet recordSet;
+    private final TraceState.State completeState;
 
-    private LogConfiguration logConfiguration;
+    private final LogConfiguration logConfiguration;
 
     public TransactionInfoViewModel(TransactionId transactionId, long spanId, Collection<Node> nodes, Collection<Link> links, RecordSet recordSet, TraceState.State state, LogConfiguration logConfiguration) {
         this.transactionId = transactionId;
@@ -164,6 +162,10 @@ public class TransactionInfoViewModel {
                 }
                 first = false;
             }
+
+            if (record.getElapsed() == 0) {
+                record.setExcludeFromTimeline(true);
+            }
             list.add(new CallStack(record, barRatio));
         }
 
@@ -248,11 +250,10 @@ public class TransactionInfoViewModel {
             }
             isMethod = record.isMethod();
             hasChild = record.getHasChild();
-            title = StringEscapeUtils.escapeJson(record.getTitle());
-            //arguments = StringEscapeUtils.escapeJson(StringEscapeUtils.escapeHtml4(record.getArguments()));
+            title = record.getTitle();
             arguments = record.getArguments();
             if (record.isMethod()) {
-                executeTime = DateUtils.longToDateStr(record.getBegin(), "HH:mm:ss SSS"); // time format
+                executeTime = DateTimeFormatUtils.formatAbsolute(record.getBegin()); // time format
                 gap = String.valueOf(record.getGap());
                 elapsedTime = String.valueOf(record.getElapsed());
                 barWidth = String.format("%1d", (int)(((end - begin) * barRatio) + 0.9));

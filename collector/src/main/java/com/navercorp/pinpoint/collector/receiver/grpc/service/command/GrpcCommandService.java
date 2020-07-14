@@ -82,15 +82,19 @@ public class GrpcCommandService extends ProfilerCommandServiceGrpc.ProfilerComma
         final Long transportId = getTransportId();
         final AgentInfo agentInfo = getAgentInfo();
 
-        logger.debug("{} => local. handleCommand(). transportId:{}", agentInfo, transportId);
+        logger.info("{} => local. handleCommand(). transportId:{}, supportCommandCodeList{}", agentInfo, transportId);
 
-        RequestManager requestManager = new RequestManager(timer, 3000);
-        final PinpointGrpcServer pinpointGrpcServer = new PinpointGrpcServer(getRemoteAddress(), agentInfo, requestManager, requestObserver);
+        final List<Integer> supportCommandCodeList = getSupportCommandCodeList();
+        if (supportCommandCodeList != Header.SUPPORT_COMMAND_CODE_LIST_NOT_EXIST) {
+            logger.warn("handleCommand() not support included Header:{}. Connection will be disconnected.", Header.SUPPORT_COMMAND_CODE.name());
 
-        boolean registered = grpcServerRepository.registerIfAbsent(transportId, pinpointGrpcServer);
-        if (!registered) {
-            requestObserver.onError(new StatusException(Status.ALREADY_EXISTS));
+            requestObserver.onError(new StatusException(Status.INVALID_ARGUMENT));
             return DisabledStreamObserver.DISABLED_INSTANCE;
+        }
+
+        final PinpointGrpcServer pinpointGrpcServer = registerNewPinpointGrpcServer(requestObserver, agentInfo, transportId);
+        if (pinpointGrpcServer == null) {
+            return handleServerRegistrationFailed(requestObserver, agentInfo, transportId);
         }
 
         final ServerCallStreamObserver<PCmdRequest> serverCallStreamObserver = (ServerCallStreamObserver<PCmdRequest>) requestObserver;
@@ -103,17 +107,13 @@ public class GrpcCommandService extends ProfilerCommandServiceGrpc.ProfilerComma
             }
         });
 
-        StreamObserver<PCmdMessage> responseObserver = new StreamObserver<PCmdMessage>() {
+        final StreamObserver<PCmdMessage> responseObserver = new StreamObserver<PCmdMessage>() {
             @Override
             public void onNext(PCmdMessage value) {
+                // old operation for handshake
                 if (value.hasHandshakeMessage()) {
                     List<Integer> supportCommandServiceKeyList = value.getHandshakeMessage().getSupportCommandServiceKeyList();
-                    logger.info("{} => local. execute handshake:{}", getAgentInfo().getAgentKey(), supportCommandServiceKeyList);
-                    boolean handshakeSucceed = pinpointGrpcServer.handleHandshake(supportCommandServiceKeyList);
-                    if (handshakeSucceed) {
-                        GrpcAgentConnection grpcAgentConnection = new GrpcAgentConnection(pinpointGrpcServer, supportCommandServiceKeyList);
-                        profilerClusterManager.register(grpcAgentConnection);
-                    }
+                    registerAgentCommandList(pinpointGrpcServer, supportCommandServiceKeyList);
                 } else if (value.hasFailMessage()) {
                     PCmdResponse failMessage = value.getFailMessage();
                     pinpointGrpcServer.handleFail(failMessage);
@@ -122,25 +122,125 @@ public class GrpcCommandService extends ProfilerCommandServiceGrpc.ProfilerComma
 
             @Override
             public void onError(Throwable t) {
-                final StatusError statusError = StatusErrors.throwable(t);
-                if (statusError.isSimpleError()) {
-                    logger.info("Failed to command stream, {} => local, cause={}", getAgentInfo().getAgentKey(), statusError.getMessage());
-                } else {
-                    logger.warn("Failed to command stream, {} => local, cause={}", getAgentInfo().getAgentKey(), statusError.getMessage(), statusError.getThrowable());
-                }
-                pinpointGrpcServer.disconnected();
+                handleOnError(t, pinpointGrpcServer, agentInfo);
             }
 
             @Override
             public void onCompleted() {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("{} => local. onCompleted", getAgentInfo().getAgentKey());
-                }
-                pinpointGrpcServer.disconnected();
+                handleOnCompleted(pinpointGrpcServer, agentInfo);
             }
 
         };
         return responseObserver;
+    }
+
+    @Override
+    public StreamObserver<PCmdMessage> handleCommandV2(StreamObserver<PCmdRequest> requestObserver) {
+        final Long transportId = getTransportId();
+        final AgentInfo agentInfo = getAgentInfo();
+
+        final List<Integer> supportCommandCodeList = getSupportCommandCodeList();
+
+        logger.info("{} => local. handleCommandV2(). transportId:{}, supportCommandCodeList{}", agentInfo, transportId, supportCommandCodeList);
+
+        if (supportCommandCodeList == Header.SUPPORT_COMMAND_CODE_LIST_NOT_EXIST) {
+            logger.warn("handleCommandV2() not allow empty Header:{}. Connection will be disconnected.", Header.SUPPORT_COMMAND_CODE.name());
+            requestObserver.onError(new StatusException(Status.INVALID_ARGUMENT));
+            return DisabledStreamObserver.DISABLED_INSTANCE;
+        }
+
+        final PinpointGrpcServer pinpointGrpcServer = registerNewPinpointGrpcServer(requestObserver, agentInfo, transportId);
+        if (pinpointGrpcServer == null) {
+            return handleServerRegistrationFailed(requestObserver, agentInfo, transportId);
+        }
+
+        final ServerCallStreamObserver<PCmdRequest> serverCallStreamObserver = (ServerCallStreamObserver<PCmdRequest>) requestObserver;
+        serverCallStreamObserver.setOnReadyHandler(new Runnable() {
+            public void run() {
+                if (serverCallStreamObserver.isReady()) {
+                    logger.info("{} => local. ready() transportId:{}", agentInfo.getAgentKey(), transportId);
+                    pinpointGrpcServer.connected();
+                    registerAgentCommandList(pinpointGrpcServer, supportCommandCodeList);
+                }
+            }
+        });
+
+        final StreamObserver<PCmdMessage> responseObserver = new StreamObserver<PCmdMessage>() {
+            @Override
+            public void onNext(PCmdMessage value) {
+                if (value.hasFailMessage()) {
+                    PCmdResponse failMessage = value.getFailMessage();
+                    pinpointGrpcServer.handleFail(failMessage);
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                handleOnError(t, pinpointGrpcServer, agentInfo);
+            }
+
+            @Override
+            public void onCompleted() {
+                handleOnCompleted(pinpointGrpcServer, agentInfo);
+            }
+
+        };
+        return responseObserver;
+    }
+
+    private PinpointGrpcServer registerNewPinpointGrpcServer(StreamObserver<PCmdRequest> requestObserver, AgentInfo agentInfo, Long transportId) {
+        PinpointGrpcServer pinpointGrpcServer = createPinpointGrpcServer(requestObserver, agentInfo);
+        final boolean registered = grpcServerRepository.registerIfAbsent(transportId, pinpointGrpcServer);
+        if (registered) {
+            return pinpointGrpcServer;
+        } else {
+            return null;
+        }
+    }
+
+    private PinpointGrpcServer createPinpointGrpcServer(StreamObserver<PCmdRequest> requestObserver, AgentInfo agentInfo) {
+        final RequestManager requestManager = new RequestManager(timer, 3000);
+        return new PinpointGrpcServer(getRemoteAddress(), agentInfo, requestManager, requestObserver);
+    }
+
+    private DisabledStreamObserver handleServerRegistrationFailed(StreamObserver<PCmdRequest> requestObserver, AgentInfo agentInfo, Long transportId) {
+        logger.warn("Duplicate PCmdRequestStream found. Terminate stream. {} transportId:{}", agentInfo, transportId);
+        requestObserver.onError(new StatusException(Status.ALREADY_EXISTS));
+        return DisabledStreamObserver.DISABLED_INSTANCE;
+    }
+
+    private boolean registerAgentCommandList(PinpointGrpcServer pinpointGrpcServer, List<Integer> supportCommandServiceCodeList) {
+        logger.info("{} => local. execute supportCommandServiceCodeList:{}", getAgentInfo().getAgentKey(), supportCommandServiceCodeList);
+        boolean handshakeSucceed = pinpointGrpcServer.handleHandshake(supportCommandServiceCodeList);
+        if (handshakeSucceed) {
+            GrpcAgentConnection grpcAgentConnection = new GrpcAgentConnection(pinpointGrpcServer, supportCommandServiceCodeList);
+            profilerClusterManager.register(grpcAgentConnection);
+        }
+
+        return handshakeSucceed;
+    }
+
+    private void handleOnError(Throwable t, PinpointGrpcServer pinpointGrpcServer, AgentInfo agentInfo) {
+        Objects.requireNonNull(pinpointGrpcServer, "pinpointGrpcServer");
+        Objects.requireNonNull(agentInfo, "agentInfo");
+
+        final StatusError statusError = StatusErrors.throwable(t);
+        if (statusError.isSimpleError()) {
+            logger.info("Failed to command stream, {} => local, cause={}", agentInfo.getAgentKey(), statusError.getMessage());
+        } else {
+            logger.warn("Failed to command stream, {} => local, cause={}", agentInfo.getAgentKey(), statusError.getMessage(), statusError.getThrowable());
+        }
+        pinpointGrpcServer.disconnected();
+    }
+
+    private void handleOnCompleted(PinpointGrpcServer pinpointGrpcServer, AgentInfo agentInfo) {
+        Objects.requireNonNull(pinpointGrpcServer, "pinpointGrpcServer");
+        Objects.requireNonNull(agentInfo, "agentInfo");
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("{} => local. onCompleted", getAgentInfo().getAgentKey());
+        }
+        pinpointGrpcServer.disconnected();
     }
 
     @Override
@@ -212,6 +312,11 @@ public class GrpcCommandService extends ProfilerCommandServiceGrpc.ProfilerComma
     private AgentInfo getAgentInfo() {
         Header header = ServerContext.getAgentInfo();
         return new AgentInfo(header.getApplicationName(), header.getAgentId(), header.getAgentStartTime());
+    }
+
+    private List<Integer> getSupportCommandCodeList() {
+        Header header = ServerContext.getAgentInfo();
+        return header.getSupportCommandCodeList();
     }
 
     private Long getTransportId() {

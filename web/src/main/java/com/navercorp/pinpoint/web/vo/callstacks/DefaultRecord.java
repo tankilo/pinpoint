@@ -23,7 +23,10 @@ import com.navercorp.pinpoint.common.trace.ServiceType;
  * @author jaehong.kim
  */
 public class DefaultRecord extends BaseRecord {
-    public DefaultRecord(int tab, int id, int parentId, boolean method, String title, String arguments, long begin, long elapsed, long gap, String agent, String applicationName, ServiceType serviceType, String destinationId, boolean hasChild, boolean hasException, String transactionId, long spanId, long executionMilliseconds, MethodTypeEnum methodTypeEnum, boolean isAuthorized) {
+    public DefaultRecord(int tab, int id, int parentId, boolean method, String title, String arguments,
+                         long begin, long elapsed, long gap, String agent, String applicationName, ServiceType serviceType,
+                         String destinationId, boolean excludeFromTimeline, boolean hasChild, boolean hasException,
+                         String transactionId, long spanId, long executionMilliseconds, MethodTypeEnum methodTypeEnum, boolean isAuthorized) {
         this.tab = tab;
         this.id = id;
         this.parentId = parentId;
@@ -40,7 +43,7 @@ public class DefaultRecord extends BaseRecord {
         this.serviceType = serviceType;
         this.destinationId = destinationId;
 
-        this.excludeFromTimeline = serviceType == null || serviceType.isInternalMethod();
+        this.excludeFromTimeline = serviceType == null || excludeFromTimeline;
         this.hasChild = hasChild;
         this.hasException = hasException;
 
@@ -125,6 +128,10 @@ public class DefaultRecord extends BaseRecord {
 
     public boolean isExcludeFromTimeline() {
         return excludeFromTimeline;
+    }
+
+    public void setExcludeFromTimeline(boolean exclude) {
+        this.excludeFromTimeline = exclude;
     }
 
     public String getSimpleClassName() {

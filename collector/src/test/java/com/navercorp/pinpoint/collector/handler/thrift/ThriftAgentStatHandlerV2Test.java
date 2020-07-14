@@ -32,6 +32,7 @@ import com.navercorp.pinpoint.common.server.bo.stat.JvmGcBo;
 import com.navercorp.pinpoint.common.server.bo.stat.JvmGcDetailedBo;
 import com.navercorp.pinpoint.common.server.bo.stat.ResponseTimeBo;
 import com.navercorp.pinpoint.common.server.bo.stat.TransactionBo;
+import com.navercorp.pinpoint.common.server.bo.stat.TotalThreadCountBo;
 import com.navercorp.pinpoint.thrift.dto.TAgentInfo;
 import com.navercorp.pinpoint.thrift.dto.TAgentStat;
 import com.navercorp.pinpoint.thrift.dto.TAgentStatBatch;
@@ -42,15 +43,16 @@ import com.navercorp.pinpoint.thrift.dto.TDirectBuffer;
 import com.navercorp.pinpoint.thrift.dto.TFileDescriptor;
 import com.navercorp.pinpoint.thrift.dto.TJvmGc;
 import com.navercorp.pinpoint.thrift.dto.TResponseTime;
+import com.navercorp.pinpoint.thrift.dto.TTotalThreadCount;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
@@ -96,19 +98,22 @@ public class ThriftAgentStatHandlerV2Test {
     @Mock
     private AgentStatDaoV2<DirectBufferBo> directBufferDao;
 
-    @InjectMocks
-    private HBaseAgentStatService hBaseAgentStatService = new HBaseAgentStatService();
+    @Mock
+    private AgentStatDaoV2<TotalThreadCountBo> totalThreadCountDao;
 
     @Spy
     private List<AgentStatService> agentStatServiceList = new ArrayList<>();
 
-    @InjectMocks
-    private ThriftAgentStatHandlerV2 thriftAgentStatHandlerV2 = new ThriftAgentStatHandlerV2();
+    private ThriftAgentStatHandlerV2 thriftAgentStatHandlerV2;
+    private HBaseAgentStatService hBaseAgentStatService;
 
     @Before
     public void setUp() throws Exception {
-        agentStatServiceList.add(hBaseAgentStatService);
         MockitoAnnotations.initMocks(this);
+        hBaseAgentStatService = new HBaseAgentStatService(jvmGcDao, jvmGcDetailedDao, cpuLoadDao, transactionDao,
+                activeTraceDao, dataSourceDao, responseTimeDao, deadlockDao, fileDescriptorDao, directBufferDao, totalThreadCountDao);
+        agentStatServiceList.add(hBaseAgentStatService);
+        thriftAgentStatHandlerV2 = new ThriftAgentStatHandlerV2(agentStatMapper, agentStatBatchMapper, Optional.of(agentStatServiceList));
     }
 
     @Test
@@ -132,7 +137,7 @@ public class ThriftAgentStatHandlerV2Test {
         verify(deadlockDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getDeadlockThreadCountBos());
         verify(fileDescriptorDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getFileDescriptorBos());
         verify(directBufferDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getDirectBufferBos());
-
+        verify(totalThreadCountDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getTotalThreadCountBos());
     }
 
     @Test
@@ -157,6 +162,7 @@ public class ThriftAgentStatHandlerV2Test {
         verify(deadlockDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getDeadlockThreadCountBos());
         verify(fileDescriptorDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getFileDescriptorBos());
         verify(directBufferDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getDirectBufferBos());
+        verify(totalThreadCountDao).insert(mappedAgentStat.getAgentId(), mappedAgentStat.getTotalThreadCountBos());
     }
 
     @Test
@@ -179,6 +185,7 @@ public class ThriftAgentStatHandlerV2Test {
         verifyZeroInteractions(responseTimeDao);
         verifyZeroInteractions(fileDescriptorDao);
         verifyZeroInteractions(directBufferDao);
+        verifyZeroInteractions(totalThreadCountDao);
     }
 
     @Test
@@ -202,6 +209,7 @@ public class ThriftAgentStatHandlerV2Test {
         verifyZeroInteractions(responseTimeDao);
         verifyZeroInteractions(fileDescriptorDao);
         verifyZeroInteractions(directBufferDao);
+        verifyZeroInteractions(totalThreadCountDao);
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -237,6 +245,7 @@ public class ThriftAgentStatHandlerV2Test {
         agentStat.setDeadlock(new TDeadlock());
         agentStat.setFileDescriptor(new TFileDescriptor());
         agentStat.setDirectBuffer(new TDirectBuffer());
+        agentStat.setTotalThreadCount(new TTotalThreadCount());
         return agentStat;
     }
 

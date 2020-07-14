@@ -16,12 +16,17 @@
 
 package com.navercorp.pinpoint.grpc.server;
 
-import com.navercorp.pinpoint.common.util.Assert;
 import com.navercorp.pinpoint.common.util.IdValidateUtils;
+import com.navercorp.pinpoint.common.util.StringUtils;
 import com.navercorp.pinpoint.grpc.Header;
 import com.navercorp.pinpoint.grpc.HeaderReader;
+
 import io.grpc.Metadata;
 import io.grpc.Status;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Woonduk Kang(emeroad)
@@ -37,10 +42,12 @@ public class AgentHeaderReader implements HeaderReader<Header> {
         final String applicationName = getId(headers, Header.APPLICATION_NAME_KEY);
         final long startTime = getTime(headers, Header.AGENT_START_TIME_KEY);
         final long socketId = getSocketId(headers);
-        return new Header(agentId, applicationName, startTime, socketId);
+        final List<Integer> supportCommandCodeList = getSupportCommandCodeList(headers);
+
+        return new Header(agentId, applicationName, startTime, socketId, supportCommandCodeList);
     }
 
-    private long getTime(Metadata headers, Metadata.Key<String> timeKey) {
+    protected long getTime(Metadata headers, Metadata.Key<String> timeKey) {
         final String timeStr = headers.get(timeKey);
         if (timeStr == null) {
             throw Status.INVALID_ARGUMENT.withDescription(timeKey.name() + " header is missing").asRuntimeException();
@@ -53,7 +60,7 @@ public class AgentHeaderReader implements HeaderReader<Header> {
         }
     }
 
-    private String getId(Metadata headers, Metadata.Key<String> idKey) {
+    protected String getId(Metadata headers, Metadata.Key<String> idKey) {
         final String id = headers.get(idKey);
         if (id == null) {
             throw Status.INVALID_ARGUMENT.withDescription(idKey.name() + " header is missing").asRuntimeException();
@@ -61,7 +68,7 @@ public class AgentHeaderReader implements HeaderReader<Header> {
         return validateId(id, idKey);
     }
 
-    private long getSocketId(Metadata headers) {
+    protected long getSocketId(Metadata headers) {
         final String socketIdStr = headers.get(Header.SOCKET_ID);
         if (socketIdStr == null) {
             return Header.SOCKET_ID_NOT_EXIST;
@@ -73,13 +80,36 @@ public class AgentHeaderReader implements HeaderReader<Header> {
         }
     }
 
+    protected List<Integer> getSupportCommandCodeList(Metadata headers) {
+        List<Integer> supportCommandCodeList = new ArrayList<Integer>();
+
+        final String value = headers.get(Header.SUPPORT_COMMAND_CODE);
+        if (value == null) {
+            return Header.SUPPORT_COMMAND_CODE_LIST_NOT_EXIST;
+        }
+
+        final List<String> codeValueList = StringUtils.tokenizeToStringList(value, Header.SUPPORT_COMMAND_CODE_DELIMITER);
+        try {
+            for (String codeValue : codeValueList) {
+                if (StringUtils.isEmpty(codeValue)) {
+                    continue;
+                }
+
+                final String trimmedCodeValue = codeValue.trim();
+                final int code = Integer.parseInt(trimmedCodeValue);
+                supportCommandCodeList.add(code);
+            }
+            return Collections.unmodifiableList(supportCommandCodeList);
+        } catch (NumberFormatException e) {
+            return Header.SUPPORT_COMMAND_CODE_LIST_PARSE_ERROR;
+        }
+    }
+
     private String validateId(String id, Metadata.Key key) {
         if (!IdValidateUtils.validateId(id)) {
             throw Status.INVALID_ARGUMENT.withDescription("invalid " + key.name()).asRuntimeException();
         }
         return id;
     }
-
-
 
 }

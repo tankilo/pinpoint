@@ -101,6 +101,8 @@ import static com.navercorp.pinpoint.common.trace.ServiceTypeProperty.*;
  * <tr><td>2410</td><td>NBASET</td></tr>
  * <tr><td>2411</td><td>NBASET_EXECUTE_QUERY</td></tr>
  * <tr><td>2412</td><td>NBASET_INTERNAL</td></tr>
+ * <tr><td>2450</td><td>INFORMIX</td></tr>
+ * <tr><td>2451</td><td>INFORMIX_EXECUTE_QUERY</td></tr>
  * <tr><td>2500</td><td>POSTGRESQL</td></tr>
  * <tr><td>2501</td><td>POSTGRESQL_EXECUTE_QUERY</td></tr>
  * <tr><td>2600</td><td>CASSANDRA</td></tr>
@@ -136,6 +138,8 @@ import static com.navercorp.pinpoint.common.trace.ServiceTypeProperty.*;
  * <tr><td>5500</td><td>IBATIS</td></tr>
  * <tr><td>5501</td><td>IBATIS-SPRING</td></tr>
  * <tr><td>5510</td><td>MYBATIS</td></tr>
+ * <tr><td>6001</td><td>THREAD_ASYNC</td></tr>
+ * <tr><td>6005</td><td>PROCESS</td></tr>
  * <tr><td>6050</td><td>DBCP</td></tr>
  * <tr><td>6052</td><td>DBCP2</td></tr>
  * <tr><td>6060</td><td>HIKARICP</td></tr>

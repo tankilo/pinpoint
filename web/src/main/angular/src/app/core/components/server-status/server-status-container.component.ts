@@ -75,7 +75,7 @@ export class ServerStatusContainerComponent implements OnInit, OnDestroy {
     }
 
     onClickViewServer(): void {
-        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.SHOW_SERVER_LIST);
+        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.TOGGLE_SERVER_LIST_VIEW);
         this.isInfoPerServerShow = !this.isInfoPerServerShow;
         this.messageQueueService.sendMessage({
             to: MESSAGE_TO.SERVER_MAP_DISABLE,
@@ -94,7 +94,7 @@ export class ServerStatusContainerComponent implements OnInit, OnDestroy {
         ).pipe(
             take(1),
         ).subscribe(([isRealTimeMode, selectedAgent]: [boolean, string]) => {
-            this.urlRouteManagerService.openInspectorPage(isRealTimeMode, selectedAgent);
+            this.urlRouteManagerService.openInspectorPage(isRealTimeMode, `${this.node.applicationName}@${this.node.serviceType}`, selectedAgent);
         });
     }
 }

@@ -5,7 +5,6 @@ import { takeUntil, filter, tap } from 'rxjs/operators';
 import { ServerMapData } from './class/server-map-data.class';
 import { ServerMapInteractionService } from './server-map-interaction.service';
 import { ServerMapDiagram } from './class/server-map-diagram.class';
-import { AnalyticsService, TRACKED_EVENT_LIST } from 'app/shared/services';
 import { ServerMapFactory, ServerMapType } from './class/server-map-factory';
 
 @Component({
@@ -22,6 +21,7 @@ export class ServerMapComponent implements OnInit, OnChanges, OnDestroy, AfterVi
     @Input() funcServerMapImagePath: Function;
     @Input() type: ServerMapType;
     @Output() outClickNode = new EventEmitter<any>();
+    @Output() outContextClickNode = new EventEmitter<string>();
     @Output() outClickLink = new EventEmitter<any>();
     @Output() outContextClickLink = new EventEmitter<string>();
     @Output() outContextClickBackground = new EventEmitter<ICoordinate>();
@@ -35,7 +35,6 @@ export class ServerMapComponent implements OnInit, OnChanges, OnDestroy, AfterVi
 
     constructor(
         private serverMapInteractionService: ServerMapInteractionService,
-        private analyticsService: AnalyticsService,
     ) {}
 
     ngOnChanges(changes: SimpleChanges) {
@@ -64,13 +63,11 @@ export class ServerMapComponent implements OnInit, OnChanges, OnDestroy, AfterVi
         this.serverMapInteractionService.onRefresh$.pipe(
             takeUntil(this.unsubscribe)
         ).subscribe(() => {
-            this.analyticsService.trackEvent(TRACKED_EVENT_LIST.REFRESH_SERVER_MAP);
             this.serverMapDiagram.refresh();
         });
         this.serverMapInteractionService.onChangeMergeState$.pipe(
             takeUntil(this.unsubscribe)
         ).subscribe((params: IServerMapMergeState) => {
-            this.analyticsService.trackEvent(TRACKED_EVENT_LIST.TOGGLE_SERVER_MAP_MERGE_STATE, `${params.state}`);
             this.serverMapDiagram.setMergeState(params);
             this.serverMapDiagram.resetMergeState();
         });
@@ -117,6 +114,9 @@ export class ServerMapComponent implements OnInit, OnChanges, OnDestroy, AfterVi
         });
         this.serverMapDiagram.outContextClickLink.subscribe((linkObj: any) => {
             this.outContextClickLink.emit(linkObj);
+        });
+        this.serverMapDiagram.outContextClickNode.subscribe((node: any) => {
+            this.outContextClickNode.emit(node);
         });
         this.serverMapDiagram.outContextClickBackground.subscribe((coord: ICoordinate) => {
             this.outContextClickBackground.emit(coord);

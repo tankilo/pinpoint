@@ -16,7 +16,7 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <organization>
         <name>Naver Corporation</name>
@@ -24,7 +24,7 @@
     </organization>
     <groupId>com.navercorp.pinpoint</groupId>
     <artifactId>pinpoint</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>2.1.0-SNAPSHOT</version>
     <name>pinpoint</name>
     <packaging>pom</packaging>
 
@@ -77,33 +77,33 @@
         <test.jdk.home>${jdk.home}</test.jdk.home>
 
         <!-- hbase -->
-        <hbase.shaded.client.version>1.2.12</hbase.shaded.client.version>
+        <hbase.shaded.client.version>1.4.13</hbase.shaded.client.version>
 
         <plugin.clover.skip>false</plugin.clover.skip>
         <plugin.animal-sniffer.skip>false</plugin.animal-sniffer.skip>
 
         <!-- library -->
-        <slf4j.version>1.7.21</slf4j.version>
-        <metrics.version>3.1.2</metrics.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <metrics.version>3.2.6</metrics.version>
 
         <!-- jdk 6 compatibility version -->
         <fastxml.jackson-jdk6.version>2.6.6</fastxml.jackson-jdk6.version>
-        <fastxml.jackson.version>2.10.1</fastxml.jackson.version>
+        <fastxml.jackson.version>2.10.4</fastxml.jackson.version>
 
         <httpcomponents.version>4.5.6</httpcomponents.version>
         <httpcomponents-core.version>4.4.10</httpcomponents-core.version>
-        <spring.version>4.3.20.RELEASE</spring.version>
-        <spring.batch.version>3.0.9.RELEASE</spring.batch.version>
-        <spring.security.version>4.2.8.RELEASE</spring.security.version>
+        <spring.version>4.3.27.RELEASE</spring.version>
+        <spring.batch.version>3.0.10.RELEASE</spring.batch.version>
+        <spring.security.version>4.2.17.RELEASE</spring.security.version>
         <asm.version>7.2</asm.version>
         <!-- 0.13.0 required Java 1.8 https://github.com/apache/thrift/pull/1657 -->
         <thrift.version>0.12.0</thrift.version>
-        <ehcache.version>2.6.11</ehcache.version>
+        <ehcache.version>2.10.6</ehcache.version>
         <netty3.version>3.10.6.Final</netty3.version>
-        <netty4.version>4.1.45.Final</netty4.version>
+        <netty4.version>4.1.50.Final</netty4.version>
 
         <!-- maven-plugin -->
-        <plugin.compiler.version>3.8.0</plugin.compiler.version>
+        <plugin.compiler.version>3.8.1</plugin.compiler.version>
         <plugin.resources.version>3.1.0</plugin.resources.version>
         <plugin.surefire.version>2.22.2</plugin.surefire.version>
         <plugin.failsafe.version>2.22.2</plugin.failsafe.version>
@@ -349,9 +349,9 @@
             </dependency>
             <!-- for spring test -->
             <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>1.2.0</version>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>1.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -474,22 +474,25 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-dbcp2</artifactId>
-                <version>2.1.1</version>
+                <version>2.7.0</version>
             </dependency>
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
-                <version>3.2.7</version>
+                <!-- build error mybatis-plugin 3.5.5 requried java8 -->
+<!--                <version>3.5.5</version>-->
+                <version>3.4.6</version>
             </dependency>
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis-spring</artifactId>
-                <version>1.2.2</version>
+                <!-- 2.0.x java8 & spring5 https://mybatis.org/spring/index.html -->
+                <version>1.3.3</version>
             </dependency>
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.45</version>
+                <version>5.1.49</version>
             </dependency>
 
             <dependency>
@@ -506,7 +509,7 @@
 
             <dependency>
                 <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache-core</artifactId>
+                <artifactId>ehcache</artifactId>
                 <version>${ehcache.version}</version>
             </dependency>
 
@@ -525,12 +528,21 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
+                <!-- 2.7 (requires Java 8 -->
+                <!-- 2.6 (requires Java 7 -->
                 <version>2.5</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.5</version>
+                <!-- Lang 3.9 and onwards now targets Java 8, making use of features that arrived with Java 8.-->
+                <version>3.10</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <!-- for jdk6 -->
+                <version>2.6</version>
             </dependency>
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -546,17 +558,14 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.10</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
+                <!-- Codec 1.14 (mirrors) requires Java 7-->
+                <!-- Codec 1.11 (archives) requires Java 6-->
+                <version>1.14</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
-                <version>1.9.3</version>
+                <version>1.9.4</version>
             </dependency>
 
             <dependency>
@@ -571,17 +580,15 @@
             </dependency>
 
 
-
-
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
-                <version>3.23.1-GA</version>
+                <version>3.27.0-GA</version>
             </dependency>
             <dependency>
                 <groupId>cglib</groupId>
                 <artifactId>cglib-nodep</artifactId>
-                <version>3.2.8</version>
+                <version>3.2.12</version>
             </dependency>
 
             <dependency>
@@ -613,9 +620,8 @@
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjweaver</artifactId>
-                <version>1.9.1</version>
+                <version>1.9.5</version>
             </dependency>
-
 
 
             <dependency>
@@ -638,7 +644,6 @@
                 <artifactId>standard</artifactId>
                 <version>1.1.2</version>
             </dependency>
-
 
 
             <dependency>

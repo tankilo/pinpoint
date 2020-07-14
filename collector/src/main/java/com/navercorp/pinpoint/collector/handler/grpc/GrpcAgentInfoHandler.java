@@ -30,8 +30,9 @@ import com.navercorp.pinpoint.io.request.ServerResponse;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * @author emeroad
@@ -42,11 +43,14 @@ public class GrpcAgentInfoHandler implements SimpleAndRequestResponseHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final boolean isDebug = logger.isDebugEnabled();
 
-    @Autowired
-    private AgentInfoService agentInfoService;
+    private final AgentInfoService agentInfoService;
 
-    @Autowired
-    private GrpcAgentInfoBoMapper agentInfoBoMapper;
+    private final GrpcAgentInfoBoMapper agentInfoBoMapper;
+
+    public GrpcAgentInfoHandler(AgentInfoService agentInfoService, GrpcAgentInfoBoMapper agentInfoBoMapper) {
+        this.agentInfoService = Objects.requireNonNull(agentInfoService, "agentInfoService");
+        this.agentInfoBoMapper = Objects.requireNonNull(agentInfoBoMapper, "agentInfoBoMapper");
+    }
 
     @Override
     public void handleSimple(ServerRequest serverRequest) {

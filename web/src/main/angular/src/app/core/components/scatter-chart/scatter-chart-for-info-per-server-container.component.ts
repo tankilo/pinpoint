@@ -184,7 +184,7 @@ export class ScatterChartForInfoPerServerContainerComponent implements OnInit, A
         this.urlRouteManagerService.openPage({
             path: [
                 UrlPath.SCATTER_FULL_SCREEN_MODE,
-                this.newUrlStateNotificationService.getPathValue(UrlPathId.APPLICATION).getUrlStr(),
+                `${this.selectedApplication.replace('^', '@')}`,
                 this.newUrlStateNotificationService.getPathValue(UrlPathId.PERIOD).getValueWithTime(),
                 this.newUrlStateNotificationService.getPathValue(UrlPathId.END_TIME).getEndTime(),
                 this.selectedAgent
@@ -226,11 +226,11 @@ export class ScatterChartForInfoPerServerContainerComponent implements OnInit, A
     }
 
     onSelectArea(params: any): void {
-        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.OPEN_TRANSACTION_LIST);
+        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.SELECT_AREA_ON_SCATTER);
         const returnOpenWindow = this.urlRouteManagerService.openPage({
             path: [
                 UrlPath.TRANSACTION_LIST,
-                this.newUrlStateNotificationService.getPathValue(UrlPathId.APPLICATION).getUrlStr(),
+                `${this.selectedApplication.replace('^', '@')}`,
                 this.newUrlStateNotificationService.getPathValue(UrlPathId.PERIOD).getValueWithTime(),
                 this.newUrlStateNotificationService.getPathValue(UrlPathId.END_TIME).getEndTime()
             ],

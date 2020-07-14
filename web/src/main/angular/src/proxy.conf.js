@@ -17,12 +17,14 @@ const PROXY_CONFIG = [
             "/getAgentStat/activeTrace/chart.pinpoint",
             "/getAgentStat/responseTime/chart.pinpoint",
             "/getAgentStat/dataSource/chartList.pinpoint",
+            "/getAgentStat/totalThreadCount/chart.pinpoint",
             "/getApplicationStat/memory/chart.pinpoint",
             "/getApplicationStat/cpuLoad/chart.pinpoint",
             "/getApplicationStat/transaction/chart.pinpoint",
             "/getApplicationStat/activeTrace/chart.pinpoint",
             "/getApplicationStat/responseTime/chart.pinpoint",
             "/getApplicationStat/dataSource/chart.pinpoint",
+            "/getApplicationStat/totalThreadCount/chart.pinpoint",
             "/getAgentStatusTimeline.pinpoint",
             "/getAgentEvents.pinpoint",
             "/getAgentInfo.pinpoint",
@@ -46,7 +48,8 @@ const PROXY_CONFIG = [
             "/getAgentStat/directBuffer/chart.pinpoint",
             "/getApplicationStat/directBuffer/chart.pinpoint",
             "/admin/removeAgentId.pinpoint",
-            "/admin/removeInactiveAgents.pinpoint"
+            "/admin/removeInactiveAgents.pinpoint",
+            "/bind.pinpoint"
         ],
         target: 'http://localhost:8080',
         secure: false

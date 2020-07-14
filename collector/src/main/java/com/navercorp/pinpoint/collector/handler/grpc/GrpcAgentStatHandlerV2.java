@@ -30,11 +30,12 @@ import com.navercorp.pinpoint.io.request.ServerRequest;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author jaehong.kim
@@ -44,14 +45,19 @@ public class GrpcAgentStatHandlerV2 implements SimpleHandler {
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     private final boolean isDebug = logger.isDebugEnabled();
 
-    @Autowired
-    private GrpcAgentStatMapper agentStatMapper;
+    private final GrpcAgentStatMapper agentStatMapper;
 
-    @Autowired
-    private GrpcAgentStatBatchMapper agentStatBatchMapper;
+    private final GrpcAgentStatBatchMapper agentStatBatchMapper;
 
-    @Autowired(required = false)
-    private List<AgentStatService> agentStatServiceList = Collections.emptyList();
+    private final List<AgentStatService> agentStatServiceList;
+
+    public GrpcAgentStatHandlerV2(GrpcAgentStatMapper agentStatMapper,
+                                  GrpcAgentStatBatchMapper agentStatBatchMapper,
+                                  Optional<List<AgentStatService>> agentStatServiceList) {
+        this.agentStatMapper = Objects.requireNonNull(agentStatMapper, "agentStatMapper");
+        this.agentStatBatchMapper = Objects.requireNonNull(agentStatBatchMapper, "agentStatBatchMapper");
+        this.agentStatServiceList = Objects.requireNonNull(agentStatServiceList, "agentStatServiceList2").orElse(Collections.emptyList());
+    }
 
     @Override
     public void handleSimple(ServerRequest serverRequest) {

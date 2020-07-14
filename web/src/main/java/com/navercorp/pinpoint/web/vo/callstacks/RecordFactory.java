@@ -46,9 +46,9 @@ public class RecordFactory {
 
     // spans with id = 0 are regarded as root - start at 1
     private int idGen = 1;
-    private AnnotationKeyMatcherService annotationKeyMatcherService;
-    private ServiceTypeRegistryService registry;
-    private AnnotationKeyRegistryService annotationKeyRegistryService;
+    private final AnnotationKeyMatcherService annotationKeyMatcherService;
+    private final ServiceTypeRegistryService registry;
+    private final AnnotationKeyRegistryService annotationKeyRegistryService;
     private final ApiDescriptionParser apiDescriptionParser = new ApiDescriptionParser();
     private final AnnotationRecordFormatter annotationRecordFormatter;
     private final ProxyRequestTypeRegistryService proxyRequestTypeRegistryService;
@@ -81,6 +81,7 @@ public class RecordFactory {
                 align.getApplicationId(),
                 registry.findServiceType(align.getServiceType()),
                 align.getDestinationId(),
+                align.getExcludeFromTimeline(),
                 align.hasChild(),
                 false,
                 align.getTransactionId(),
@@ -153,6 +154,7 @@ public class RecordFactory {
                 align.getApplicationId(),
                 ServiceType.UNKNOWN,
                 "",
+                align.getExcludeFromTimeline(),
                 false,
                 false,
                 align.getTransactionId(),
@@ -204,10 +206,8 @@ public class RecordFactory {
     }
 
     private Api getApi(final Align align) {
-
         final AnnotationBo annotation = AnnotationUtils.findAnnotationBo(align.getAnnotationBoList(), AnnotationKey.API_METADATA);
         if (annotation != null) {
-
             final Api api = new Api();
             final ApiMetaDataBo apiMetaData = (ApiMetaDataBo) annotation.getValue();
             String apiInfo = getApiInfo(apiMetaData);
@@ -218,15 +218,12 @@ public class RecordFactory {
                     ApiDescription apiDescription = apiDescriptionParser.parse(api.description);
                     api.setTitle(apiDescription.getSimpleMethodDescription());
                     api.setClassName(apiDescription.getSimpleClassName());
-                } catch (Exception e) {
-                    logger.debug("Failed to api parse. {}", api.description, e);
+                } catch (Exception ignored) {
                 }
             }
             api.setMethodTypeEnum(apiMetaData.getMethodTypeEnum());
             return api;
-
         } else {
-
             final Api api = new Api();
             AnnotationKey apiMetaDataError = getApiMetaDataError(align.getAnnotationBoList());
             api.setTitle(apiMetaDataError.getName());

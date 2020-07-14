@@ -17,15 +17,19 @@
 package com.navercorp.pinpoint.bootstrap.config;
 
 import com.navercorp.pinpoint.bootstrap.BootLogger;
+import com.navercorp.pinpoint.bootstrap.agentdir.AgentDirectory;
 import com.navercorp.pinpoint.bootstrap.agentdir.Assert;
+import com.navercorp.pinpoint.common.annotations.VisibleForTesting;
 import com.navercorp.pinpoint.common.util.PropertyUtils;
 import com.navercorp.pinpoint.common.util.SimpleProperty;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 
 /**
+ * @author yjqg6666
  * @author Woonduk Kang(emeroad)
  */
 class ProfilePropertyLoader implements PropertyLoader {
@@ -39,6 +43,8 @@ class ProfilePropertyLoader implements PropertyLoader {
     private final String profilesPath;
 
     private final String[] supportedProfiles;
+
+    public static final String[] ALLOWED_PROPERTY_PREFIX = new String[]{"bytecode.", "profiler.", "pinpoint."};
 
     public ProfilePropertyLoader(SimpleProperty systemProperty, String agentRootPath, String profilesPath, String[] supportedProfiles) {
         this.systemProperty = Assert.requireNonNull(systemProperty, "systemProperty");
@@ -74,10 +80,19 @@ class ProfilePropertyLoader implements PropertyLoader {
             loadFileProperties(defaultProperties, externalConfig);
         }
         // ?? 4. systemproperty -Dkey=value?
+        loadSystemProperties(defaultProperties);
+
+        // root path
+        saveAgentRootPath(agentRootPath, defaultProperties);
 
         // log path
         saveLogConfigLocation(activeProfile, defaultProperties);
         return defaultProperties;
+    }
+
+    private void saveAgentRootPath(String agentRootPath, Properties properties) {
+        properties.put(AgentDirectory.AGENT_ROOT_PATH_KEY, agentRootPath);
+        logger.info(String.format("agent root path:%s", agentRootPath));
     }
 
     private void saveLogConfigLocation(String activeProfile, Properties properties) {
@@ -117,6 +132,26 @@ class ProfilePropertyLoader implements PropertyLoader {
             logger.info(String.format("%s load fail Caused by:%s", filePath, e.getMessage()));
             throw new IllegalStateException(String.format("%s load fail Caused by:%s", filePath, e.getMessage()));
         }
+    }
+
+    private void loadSystemProperties(Properties dstProperties) {
+        Set<String> stringPropertyNames = this.systemProperty.stringPropertyNames();
+        for (String propertyName : stringPropertyNames) {
+            if (isAllowPinpointProperty(propertyName)) {
+                String val = this.systemProperty.getProperty(propertyName);
+                dstProperties.setProperty(propertyName, val);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    boolean isAllowPinpointProperty(String propertyName) {
+        for (String prefix : ALLOWED_PROPERTY_PREFIX) {
+            if (propertyName.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

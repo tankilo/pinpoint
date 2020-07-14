@@ -25,6 +25,7 @@ import { TransactionDetailDataService } from './services/transaction-detail-data
 import { StoreHelperService } from './services/store-helper.service';
 import { UrlValidateGuard } from './services/url-validate.guard';
 import { ThemeService } from './services/theme.service';
+import { AuthService } from './services/auth.service';
 
 import { HeaderLogoComponent } from './components/header-logo';
 import { EmptyContentsComponent, NoneComponent } from './components/empty-contents';
@@ -35,7 +36,6 @@ import { SimpleProgressSliderComponent } from './components/simple-progress-slid
 import { FormFieldErrorMessageComponent } from './components/form-field-error-message';
 import { ServerErrorMessageComponent } from './components/server-error-message';
 import { ContextPopupDirective } from './directives/context-popup.directive';
-import { SplitterDirective } from './directives/splitter.directive';
 import { SearchInputDirective } from './directives/search-input.directive';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { JSONTextParserPipe } from './pipes/json-text-parser.pipe';
@@ -66,7 +66,6 @@ import { PickPropsPipe } from './pipes/pick-props.pipe';
         HandleObsPipe,
         PickPropsPipe,
         ContextPopupDirective,
-        SplitterDirective,
         SearchInputDirective
     ],
     imports: [
@@ -95,7 +94,6 @@ import { PickPropsPipe } from './pipes/pick-props.pipe';
         HandleObsPipe,
         PickPropsPipe,
         ContextPopupDirective,
-        SplitterDirective,
         SearchInputDirective
     ],
     providers: []
@@ -128,7 +126,8 @@ export class SharedModule {
                 DynamicPopupService,
                 ApplicationListResolverService,
                 ApplicationListDataService,
-                ThemeService
+                ThemeService,
+                AuthService
             ]
         };
     }

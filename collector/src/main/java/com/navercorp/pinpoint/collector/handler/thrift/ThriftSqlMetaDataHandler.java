@@ -25,8 +25,9 @@ import com.navercorp.pinpoint.thrift.dto.TResult;
 import com.navercorp.pinpoint.thrift.dto.TSqlMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * @author emeroad
@@ -35,11 +36,12 @@ import org.springframework.stereotype.Service;
 public class ThriftSqlMetaDataHandler implements RequestResponseHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private SqlMetaDataService sqlMetaDataService;
+    private final SqlMetaDataService sqlMetaDataService;
 
-    public ThriftSqlMetaDataHandler() {
+    public ThriftSqlMetaDataHandler(SqlMetaDataService sqlMetaDataService) {
+        this.sqlMetaDataService = Objects.requireNonNull(sqlMetaDataService, "sqlMetaDataService");
     }
+
 
     @Override
     public void handleRequest(ServerRequest serverRequest, ServerResponse serverResponse) {

@@ -16,8 +16,6 @@
 
 package com.navercorp.pinpoint.common.server.trace;
 
-import com.navercorp.pinpoint.common.server.trace.ApiDescription;
-import com.navercorp.pinpoint.common.server.trace.DefaultApiDescription;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -34,7 +32,7 @@ public class ApiDescriptionParser {
     private static final char METHOD_PARAM_START = '(';
     private static final char METHOD_PARAM_END = ')';
     private static final char PARAMETER_SP = ',';
-    private static Pattern PARAMETER_REGEX = Pattern.compile(", |,");
+    private static final Pattern PARAMETER_REGEX = Pattern.compile(", |,");
     //  org.springframework.web.servlet.FrameworkServlet.doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response)
 // com.mysql.jdbc.ConnectionImpl.setAutoCommit(boolean autoCommitFlag)
 //        com.mysql.jdbc.ConnectionImpl.commit()
@@ -79,7 +77,7 @@ public class ApiDescriptionParser {
                 int line = Integer.parseInt(apiDescriptionString.substring(lineIndex + 1, apiDescriptionString.length()));
                 api.setLine(line);
             } catch (NumberFormatException e) {
-                LoggerFactory.getLogger(this.getClass()).warn("line number parse error {}", e);
+                LoggerFactory.getLogger(this.getClass()).warn("line number parse error", e);
             }
         }
 

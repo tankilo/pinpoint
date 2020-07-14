@@ -32,6 +32,7 @@ export class AlarmRuleCreateAndUpdateComponent implements OnInit, OnChanges {
     @Output() outUpdateAlarm = new EventEmitter<IAlarmForm>();
     @Output() outCreateAlarm = new EventEmitter<IAlarmForm>();
     @Output() outClose = new EventEmitter<void>();
+    @Output() outShowHelp = new EventEmitter<{[key: string]: ICoordinate}>();
 
     alarmForm = new FormGroup({
         'checkerName': new FormControl('', [Validators.required]),
@@ -62,6 +63,12 @@ export class AlarmRuleCreateAndUpdateComponent implements OnInit, OnChanges {
     }
 
     onCreateOrUpdate() {
+        this.alarmForm.markAllAsTouched();
+
+        if (this.alarmForm.invalid) {
+            return;
+        }
+
         const alarm = this.alarmForm.value;
 
         this.editAlarm ? this.outUpdateAlarm.emit(alarm) : this.outCreateAlarm.emit(alarm);
@@ -70,5 +77,16 @@ export class AlarmRuleCreateAndUpdateComponent implements OnInit, OnChanges {
 
     onClose() {
         this.outClose.emit();
+    }
+
+    onShowHelp(target: HTMLElement): void {
+        const {left, top, width, height} = target.getBoundingClientRect();
+
+        this.outShowHelp.emit({
+            coord: {
+                coordX: left + width / 2,
+                coordY: top + height / 2
+            }
+        });
     }
 }

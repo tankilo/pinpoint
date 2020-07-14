@@ -16,12 +16,12 @@
 
 package com.navercorp.pinpoint.profiler.context.grpc;
 
-import com.google.protobuf.GeneratedMessageV3;
 import com.navercorp.pinpoint.grpc.trace.PActiveTrace;
 import com.navercorp.pinpoint.grpc.trace.PActiveTraceHistogram;
 import com.navercorp.pinpoint.grpc.trace.PAgentStat;
 import com.navercorp.pinpoint.grpc.trace.PAgentStatBatch;
 import com.navercorp.pinpoint.grpc.trace.PCpuLoad;
+import com.navercorp.pinpoint.grpc.trace.PCustomMetricMessage;
 import com.navercorp.pinpoint.grpc.trace.PDataSource;
 import com.navercorp.pinpoint.grpc.trace.PDataSourceList;
 import com.navercorp.pinpoint.grpc.trace.PDeadlock;
@@ -32,10 +32,12 @@ import com.navercorp.pinpoint.grpc.trace.PJvmGcDetailed;
 import com.navercorp.pinpoint.grpc.trace.PJvmGcType;
 import com.navercorp.pinpoint.grpc.trace.PResponseTime;
 import com.navercorp.pinpoint.grpc.trace.PThreadDump;
+import com.navercorp.pinpoint.grpc.trace.PTotalThread;
 import com.navercorp.pinpoint.grpc.trace.PTransaction;
 import com.navercorp.pinpoint.profiler.context.active.ActiveTraceHistogram;
 import com.navercorp.pinpoint.profiler.context.active.ActiveTraceHistogramUtils;
 import com.navercorp.pinpoint.profiler.context.thrift.MessageConverter;
+import com.navercorp.pinpoint.profiler.monitor.metric.AgentCustomMetricSnapshotBatch;
 import com.navercorp.pinpoint.profiler.monitor.metric.AgentStatMetricSnapshot;
 import com.navercorp.pinpoint.profiler.monitor.metric.AgentStatMetricSnapshotBatch;
 import com.navercorp.pinpoint.profiler.monitor.metric.JvmGcDetailedMetricSnapshot;
@@ -48,7 +50,10 @@ import com.navercorp.pinpoint.profiler.monitor.metric.deadlock.DeadlockMetricSna
 import com.navercorp.pinpoint.profiler.monitor.metric.deadlock.ThreadDumpMetricSnapshot;
 import com.navercorp.pinpoint.profiler.monitor.metric.filedescriptor.FileDescriptorMetricSnapshot;
 import com.navercorp.pinpoint.profiler.monitor.metric.response.ResponseTimeValue;
+import com.navercorp.pinpoint.profiler.monitor.metric.totalthread.TotalThreadMetricSnapshot;
 import com.navercorp.pinpoint.profiler.monitor.metric.transaction.TransactionMetricSnapshot;
+
+import com.google.protobuf.GeneratedMessageV3;
 
 import java.util.List;
 
@@ -58,6 +63,7 @@ import java.util.List;
 public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessageV3> {
     private GrpcThreadDumpMessageConverter threadDumpMessageConverter = new GrpcThreadDumpMessageConverter();
     private GrpcJvmGcTypeMessageConverter jvmGcTypeConverter = new GrpcJvmGcTypeMessageConverter();
+    private final GrpcCustomMetricMessageConverter customMetricMessageConverter = new GrpcCustomMetricMessageConverter();
 
     @Override
     public GeneratedMessageV3 toMessage(Object message) {
@@ -74,6 +80,10 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
             final AgentStatMetricSnapshot agentStatMetricSnapshot = (AgentStatMetricSnapshot) message;
             final PAgentStat agentStat = converAgentStat(agentStatMetricSnapshot);
             return agentStat;
+        } else if (message instanceof AgentCustomMetricSnapshotBatch) {
+            final AgentCustomMetricSnapshotBatch agentCustomMetricSnapshotBatch = (AgentCustomMetricSnapshotBatch) message;
+            final PCustomMetricMessage pCustomMetricMessage = customMetricMessageConverter.toMessage(agentCustomMetricSnapshotBatch);
+            return pCustomMetricMessage;
         }
         return null;
     }
@@ -136,6 +146,12 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
         if (bufferMetricSnapshot != null) {
             final PDirectBuffer directBuffer = convertDirectBuffer(bufferMetricSnapshot);
             agentStatBuilder.setDirectBuffer(directBuffer);
+        }
+
+        final TotalThreadMetricSnapshot totalThreadMetricSnapshot = agentStatMetricSnapshot.getTotalThread();
+        if (totalThreadMetricSnapshot != null) {
+            final PTotalThread totalThread =convertTotalThread(totalThreadMetricSnapshot);
+            agentStatBuilder.setTotalThread(totalThread);
         }
         return agentStatBuilder.build();
     }
@@ -257,5 +273,11 @@ public class GrpcStatMessageConverter implements MessageConverter<GeneratedMessa
         directBufferBuilder.setMappedCount(directBufferCollectData.getMappedCount());
         directBufferBuilder.setMappedMemoryUsed(directBufferCollectData.getMappedMemoryUsed());
         return directBufferBuilder.build();
+    }
+
+    private PTotalThread convertTotalThread(TotalThreadMetricSnapshot totalThreadCountData) {
+        final PTotalThread.Builder totalThreadBuilder = PTotalThread.newBuilder();
+        totalThreadBuilder.setTotalThreadCount(totalThreadCountData.getTotalThreadCount());
+        return totalThreadBuilder.build();
     }
 }

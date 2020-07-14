@@ -60,7 +60,12 @@ export class ServerMapDiagramWithCytoscapejs extends ServerMapDiagram {
                         'overlay-opacity': 0,
                         'font-family': 'Helvetica, Arial, avn85, NanumGothic, ng, dotum, AppleGothic, sans-serif',
                         'font-size': (ele: any) => ele.id() === this.baseApplicationKey ? '14px' : '12px',
-                        'font-weight': (ele: any) => ele.id() === this.baseApplicationKey ? 'bold' : 'normal'
+                        'font-weight': (ele: any) => ele.id() === this.baseApplicationKey ? 'bold' : 'normal',
+                        'text-wrap': 'wrap',
+                        'text-max-width': 200,
+                        // 'text-overflow-wrap': 'anywhere',
+                        // 'text-justification': 'left',
+                        'line-height': 1.5
                     }
                 },
                 {
@@ -94,7 +99,7 @@ export class ServerMapDiagramWithCytoscapejs extends ServerMapDiagram {
                     }
                 }
             ],
-            wheelSensitivity: 0.3
+            wheelSensitivity: 0.2
         });
     }
 
@@ -131,6 +136,11 @@ export class ServerMapDiagramWithCytoscapejs extends ServerMapDiagram {
                     this.outContextClickBackground.emit({coordX: clientX, coordY: clientY});
                 } else if (target.isEdge() && !NodeGroup.isGroupKey(target.id())) {
                     this.outContextClickLink.emit({
+                        key: target.id(),
+                        coord: {coordX: clientX, coordY: clientY}
+                    });
+                } else if (target.isNode() && !NodeGroup.isGroupKey(target.id())) {
+                    this.outContextClickNode.emit({
                         key: target.id(),
                         coord: {coordX: clientX, coordY: clientY}
                     });

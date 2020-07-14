@@ -29,6 +29,7 @@ import com.navercorp.pinpoint.common.server.bo.stat.JvmGcBo;
 import com.navercorp.pinpoint.common.server.bo.stat.JvmGcDetailedBo;
 import com.navercorp.pinpoint.common.server.bo.stat.ResponseTimeBo;
 import com.navercorp.pinpoint.common.server.bo.stat.TransactionBo;
+import com.navercorp.pinpoint.common.server.bo.stat.TotalThreadCountBo;
 import com.navercorp.pinpoint.web.service.stat.ActiveTraceChartService;
 import com.navercorp.pinpoint.web.service.stat.ActiveTraceService;
 import com.navercorp.pinpoint.web.service.stat.AgentStatChartService;
@@ -51,6 +52,8 @@ import com.navercorp.pinpoint.web.service.stat.ResponseTimeChartService;
 import com.navercorp.pinpoint.web.service.stat.ResponseTimeService;
 import com.navercorp.pinpoint.web.service.stat.TransactionChartService;
 import com.navercorp.pinpoint.web.service.stat.TransactionService;
+import com.navercorp.pinpoint.web.service.stat.TotalThreadCountChartService;
+import com.navercorp.pinpoint.web.service.stat.TotalThreadCountService;
 import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.util.TimeWindowSampler;
 import com.navercorp.pinpoint.web.util.TimeWindowSlotCentricSampler;
@@ -89,7 +92,7 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
             @RequestParam("agentId") String agentId,
             @RequestParam("from") long from,
             @RequestParam("to") long to) {
-        Range rangeToScan = new Range(from, to);
+        Range rangeToScan = Range.newRange(from, to);
         return this.agentStatService.selectAgentStatList(agentId, rangeToScan);
     }
 
@@ -101,7 +104,7 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
             @RequestParam("from") long from,
             @RequestParam("to") long to) {
         TimeWindowSampler sampler = new TimeWindowSlotCentricSampler();
-        TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         return this.agentStatChartService.selectAgentChart(agentId, timeWindow);
     }
 
@@ -121,7 +124,7 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
                 return intervalMs;
             }
         };
-        TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         return this.agentStatChartService.selectAgentChart(agentId, timeWindow);
     }
 
@@ -133,7 +136,7 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
             @RequestParam("from") long from,
             @RequestParam("to") long to) {
         TimeWindowSampler sampler = new TimeWindowSlotCentricSampler();
-        TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         return this.agentStatChartService.selectAgentChartList(agentId, timeWindow);
     }
 
@@ -153,7 +156,7 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
                 return intervalMs;
             }
         };
-        TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         return this.agentStatChartService.selectAgentChartList(agentId, timeWindow);
     }
 
@@ -244,6 +247,16 @@ public abstract class AgentStatController<T extends AgentStatDataPoint> {
         @Autowired
         public DirectBufferController(DirectBufferService directBufferService, DirectBufferChartService directBufferChartService) {
             super(directBufferService, directBufferChartService);
+        }
+    }
+
+    @Controller
+    @RequestMapping("/getAgentStat/totalThreadCount")
+    public static class TotalThreadCountController extends AgentStatController<TotalThreadCountBo> {
+        @Autowired
+        public TotalThreadCountController(TotalThreadCountService totalThreadCountService,
+                                          TotalThreadCountChartService totalThreadCountChartService) {
+            super(totalThreadCountService, totalThreadCountChartService);
         }
     }
 }

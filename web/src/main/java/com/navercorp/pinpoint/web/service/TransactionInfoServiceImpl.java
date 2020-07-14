@@ -41,16 +41,16 @@ import com.navercorp.pinpoint.web.vo.callstacks.RecordSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
- *
  * @author jaehong.kim
  */
 @Service
@@ -58,24 +58,30 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    @Qualifier("hbaseTraceDaoFactory")
-    private TraceDao traceDao;
+    private final TraceDao traceDao;
 
-    @Autowired
-    private AnnotationKeyMatcherService annotationKeyMatcherService;
+    private final AnnotationKeyMatcherService annotationKeyMatcherService;
 
-    @Autowired
-    private ServiceTypeRegistryService registry;
+    private final ServiceTypeRegistryService registry;
 
-    @Autowired
-    private AnnotationKeyRegistryService annotationKeyRegistryService;
+    private final AnnotationKeyRegistryService annotationKeyRegistryService;
 
-    @Autowired(required=false)
-    private MetaDataFilter metaDataFilter;
+    private final MetaDataFilter metaDataFilter;
 
-    @Autowired
-    private ProxyRequestTypeRegistryService proxyRequestTypeRegistryService;
+    private final ProxyRequestTypeRegistryService proxyRequestTypeRegistryService;
+
+    public TransactionInfoServiceImpl(@Qualifier("hbaseTraceDaoFactory") TraceDao traceDao,
+                                      AnnotationKeyMatcherService annotationKeyMatcherService,
+                                      ServiceTypeRegistryService registry,
+                                      AnnotationKeyRegistryService annotationKeyRegistryService,
+                                      Optional<MetaDataFilter> metaDataFilter, ProxyRequestTypeRegistryService proxyRequestTypeRegistryService) {
+        this.traceDao = Objects.requireNonNull(traceDao, "traceDao");
+        this.annotationKeyMatcherService = Objects.requireNonNull(annotationKeyMatcherService, "annotationKeyMatcherService");
+        this.registry = Objects.requireNonNull(registry, "registry");
+        this.annotationKeyRegistryService = Objects.requireNonNull(annotationKeyRegistryService, "annotationKeyRegistryService");
+        this.metaDataFilter = Objects.requireNonNull(metaDataFilter, "metaDataFilter").orElse(null);
+        this.proxyRequestTypeRegistryService = Objects.requireNonNull(proxyRequestTypeRegistryService, "proxyRequestTypeRegistryService");
+    }
 
     // Temporarily disabled Because We need to solve authentication problem inter system.
     // @Value("${log.enable:false}")
@@ -89,15 +95,9 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
 
     @Override
     public BusinessTransactions selectBusinessTransactions(List<TransactionId> transactionIdList, String applicationName, Range range, Filter filter) {
-        if (transactionIdList == null) {
-            throw new NullPointerException("transactionIdList");
-        }
-        if (applicationName == null) {
-            throw new NullPointerException("applicationName");
-        }
-        if (filter == null) {
-            throw new NullPointerException("filter");
-        }
+        Objects.requireNonNull(transactionIdList, "transactionIdList");
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(filter, "filter");
         if (range == null) {
             // TODO range is not used - check the logic again
             throw new NullPointerException("range");
@@ -134,9 +134,7 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
 
     @Override
     public RecordSet createRecordSet(CallTreeIterator callTreeIterator, long focusTimestamp, String agentId, long spanId) {
-        if (callTreeIterator == null) {
-            throw new NullPointerException("callTreeIterator");
-        }
+        Objects.requireNonNull(callTreeIterator, "callTreeIterator");
 
         RecordSet recordSet = new RecordSet();
         final List<Align> alignList = callTreeIterator.values();
@@ -239,16 +237,23 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
         if (CollectionUtils.isEmpty(alignList)) {
             return 0;
         }
-        Align align = alignList.get(0);
-        return align.getStartTime();
+
+        long min = Long.MAX_VALUE;
+        for (Align align : alignList) {
+            min = Math.min(min, align.getStartTime());
+        }
+        return min;
     }
 
     private long getEndTime(List<Align> alignList) {
         if (CollectionUtils.isEmpty(alignList)) {
             return 0;
         }
-        Align align = alignList.get(0);
-        return align.getEndTime();
+        long max = Long.MIN_VALUE;
+        for (Align align : alignList) {
+            max = Math.max(max, align.getEndTime());
+        }
+        return max;
     }
 
     private Align findViewPoint(List<Align> alignList, long focusTimestamp, String agentId, long spanId) {
@@ -374,7 +379,7 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
                 // add exception record.
                 if (align.hasException()) {
                     final Record exceptionRecord = factory.getException(record.getTab() + 1, record.getId(), align);
-                    if(exceptionRecord != null) {
+                    if (exceptionRecord != null) {
                         recordList.add(exceptionRecord);
                     }
                 }
@@ -389,6 +394,16 @@ public class TransactionInfoServiceImpl implements TransactionInfoService {
                 if (align.getRemoteAddr() != null) {
                     final Record remoteAddressRecord = factory.getParameter(record.getTab() + 1, record.getId(), "REMOTE_ADDRESS", align.getRemoteAddr());
                     recordList.add(remoteAddressRecord);
+                }
+
+                // add endPoint.(span only)
+                if (align.isSpan()) {
+                    final SpanBo spanBo = align.getSpanBo();
+                    final String endPoint = spanBo.getEndPoint();
+                    if (endPoint != null) {
+                        final Record endPointRecord = factory.getParameter(record.getTab() + 1, record.getId(), "ENDPOINT", endPoint);
+                        recordList.add(endPointRecord);
+                    }
                 }
             }
 

@@ -46,7 +46,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -57,6 +56,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -92,7 +92,7 @@ public class FilteredMapServiceImplTest {
     private ApplicationFactory applicationFactory;
 
     // Mocked
-    private ServiceTypeRegistryService registry = TestTraceUtils.mockServiceTypeRegistryService();
+    private final ServiceTypeRegistryService registry = TestTraceUtils.mockServiceTypeRegistryService();
 
     @Spy
     private ApplicationMapBuilderFactory applicationMapBuilderFactory = new ApplicationMapBuilderFactory(
@@ -100,8 +100,7 @@ public class FilteredMapServiceImplTest {
             new ServerInfoAppenderFactory(executor)
     );
 
-    @InjectMocks
-    private FilteredMapService filteredMapService = new FilteredMapServiceImpl();
+    private FilteredMapService filteredMapService;
 
     @Before
     public void init() {
@@ -120,6 +119,7 @@ public class FilteredMapServiceImplTest {
             ServiceType serviceType = registry.findServiceTypeByName(invocation.getArgument(1));
             return new Application(applicationName, serviceType);
         });
+        filteredMapService = new FilteredMapServiceImpl(agentInfoService, traceDao, applicationTraceIndexDao, registry, applicationFactory, Optional.empty(), applicationMapBuilderFactory);
     }
 
     @After
@@ -141,8 +141,8 @@ public class FilteredMapServiceImplTest {
     @Test
     public void twoTier() {
         // Given
-        Range originalRange = new Range(1000, 2000);
-        Range scanRange = new Range(1000, 2000);
+        Range originalRange = Range.newRange(1000, 2000);
+        Range scanRange = Range.newRange(1000, 2000);
         final TimeWindow timeWindow = new TimeWindow(originalRange, TimeWindowDownSampler.SAMPLER);
 
         // root app span

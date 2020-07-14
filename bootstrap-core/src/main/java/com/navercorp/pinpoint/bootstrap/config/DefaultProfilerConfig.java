@@ -42,6 +42,9 @@ public class DefaultProfilerConfig implements ProfilerConfig {
 
     private static final CommonLogger logger = StdoutCommonLoggerFactory.INSTANCE.getLogger(DefaultProfilerConfig.class.getName());
 
+    public static final String PLUGIN_DISABLE = "profiler.plugin.disable";
+    // TestAgent only
+    public static final String IMPORT_PLUGIN = "profiler.plugin.import-plugin";
 
     private final Properties properties;
 
@@ -99,7 +102,7 @@ public class DefaultProfilerConfig implements ProfilerConfig {
 
     private String profileInstrumentEngine = INSTRUMENT_ENGINE_ASM;
     private boolean instrumentMatcherEnable = true;
-    private InstrumentMatcherCacheConfig instrumentMatcherCacheConfig = new InstrumentMatcherCacheConfig();
+    private final InstrumentMatcherCacheConfig instrumentMatcherCacheConfig = new InstrumentMatcherCacheConfig();
 
     private int interceptorRegistrySize = 1024 * 8;
 
@@ -161,6 +164,9 @@ public class DefaultProfilerConfig implements ProfilerConfig {
     private String injectionModuleFactoryClazzName = null;
     private String applicationNamespace = "";
 
+    private boolean customMetricEnable = false;
+    private int customMetricLimitSize = 10;
+
     public DefaultProfilerConfig() {
         this.properties = new Properties();
         this.thriftTransportConfig = new DefaultThriftTransportConfig();
@@ -200,258 +206,6 @@ public class DefaultProfilerConfig implements ProfilerConfig {
 //          // TODO ?
 //        }
         return thriftTransportConfig;
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getCollectorSpanServerIp() {
-        return getThriftTransportConfig().getCollectorSpanServerIp();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getCollectorSpanServerPort() {
-        return getThriftTransportConfig().getCollectorSpanServerPort();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getCollectorStatServerIp() {
-        return getThriftTransportConfig().getCollectorStatServerIp();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getCollectorStatServerPort() {
-        return getThriftTransportConfig().getCollectorStatServerPort();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getCollectorTcpServerIp() {
-        return getThriftTransportConfig().getCollectorTcpServerIp();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getCollectorTcpServerPort() {
-        return getThriftTransportConfig().getCollectorTcpServerPort();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getStatDataSenderWriteQueueSize() {
-        return getThriftTransportConfig().getStatDataSenderWriteQueueSize();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getStatDataSenderSocketSendBufferSize() {
-        return getThriftTransportConfig().getStatDataSenderSocketSendBufferSize();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getStatDataSenderSocketTimeout() {
-        return getThriftTransportConfig().getStatDataSenderSocketTimeout();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getStatDataSenderSocketType() {
-        return getThriftTransportConfig().getStatDataSenderSocketType();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getStatDataSenderTransportType() {
-        return getThriftTransportConfig().getStatDataSenderTransportType();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getSpanDataSenderWriteQueueSize() {
-        return getThriftTransportConfig().getSpanDataSenderWriteQueueSize();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getSpanDataSenderSocketSendBufferSize() {
-        return getThriftTransportConfig().getSpanDataSenderSocketSendBufferSize();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public boolean isTcpDataSenderCommandAcceptEnable() {
-        return getThriftTransportConfig().isTcpDataSenderCommandAcceptEnable();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public boolean isTcpDataSenderCommandActiveThreadEnable() {
-        return getThriftTransportConfig().isTcpDataSenderCommandActiveThreadEnable();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public boolean isTcpDataSenderCommandActiveThreadCountEnable() {
-        return getThriftTransportConfig().isTcpDataSenderCommandActiveThreadCountEnable();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public boolean isTcpDataSenderCommandActiveThreadDumpEnable() {
-        return getThriftTransportConfig().isTcpDataSenderCommandActiveThreadDumpEnable();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public boolean isTcpDataSenderCommandActiveThreadLightDumpEnable() {
-        return getThriftTransportConfig().isTcpDataSenderCommandActiveThreadLightDumpEnable();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public long getTcpDataSenderPinpointClientWriteTimeout() {
-        return getThriftTransportConfig().getTcpDataSenderPinpointClientWriteTimeout();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public long getTcpDataSenderPinpointClientRequestTimeout() {
-        return getThriftTransportConfig().getTcpDataSenderPinpointClientRequestTimeout();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public long getTcpDataSenderPinpointClientReconnectInterval() {
-        return getThriftTransportConfig().getTcpDataSenderPinpointClientReconnectInterval();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public long getTcpDataSenderPinpointClientPingInterval() {
-        return getThriftTransportConfig().getTcpDataSenderPinpointClientPingInterval();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public long getTcpDataSenderPinpointClientHandshakeInterval() {
-        return getThriftTransportConfig().getTcpDataSenderPinpointClientHandshakeInterval();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getSpanDataSenderSocketTimeout() {
-        return getThriftTransportConfig().getSpanDataSenderSocketTimeout();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getSpanDataSenderSocketType() {
-        return getThriftTransportConfig().getSpanDataSenderSocketType();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public String getSpanDataSenderTransportType() {
-        return getThriftTransportConfig().getSpanDataSenderTransportType();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getSpanDataSenderChunkSize() {
-        return getThriftTransportConfig().getSpanDataSenderChunkSize();
-    }
-
-    /**
-     * @deprecated Use {@link #getThriftTransportConfig()} instead.
-     */
-    @Deprecated
-    @Override
-    public int getStatDataSenderChunkSize() {
-        return getThriftTransportConfig().getStatDataSenderChunkSize();
     }
 
     @Override
@@ -564,11 +318,6 @@ public class DefaultProfilerConfig implements ProfilerConfig {
         return staticResourceCleanup;
     }
 
-    @Deprecated
-    public void setStaticResourceCleanup(boolean staticResourceCleanup) {
-        this.staticResourceCleanup = staticResourceCleanup;
-    }
-
 
     @Override
     public Filter<String> getProfilableClassFilter() {
@@ -606,11 +355,6 @@ public class DefaultProfilerConfig implements ProfilerConfig {
     @Override
     public int getCallStackMaxDepth() {
         return callStackMaxDepth;
-    }
-
-    @Deprecated
-    public void setCallStackMaxDepth(int callStackMaxDepth) {
-        this.callStackMaxDepth = callStackMaxDepth;
     }
 
     @Override
@@ -656,6 +400,16 @@ public class DefaultProfilerConfig implements ProfilerConfig {
     @Override
     public String getApplicationNamespace() {
         return applicationNamespace;
+    }
+
+    @Override
+    public boolean isCustomMetricEnable() {
+        return customMetricEnable;
+    }
+
+    @Override
+    public int getCustomMetricLimitSize() {
+        return customMetricLimitSize;
     }
 
     // for test
@@ -729,7 +483,7 @@ public class DefaultProfilerConfig implements ProfilerConfig {
 
         this.pluginLoadOrder = readList("profiler.plugin.load.order");
 
-        this.disabledPlugins = readList("profiler.plugin.disable");
+        this.disabledPlugins = readList(PLUGIN_DISABLE);
 
         // TODO have to remove        
         // profile package included in order to test "call stack view".
@@ -751,6 +505,9 @@ public class DefaultProfilerConfig implements ProfilerConfig {
         this.injectionModuleFactoryClazzName = readString("profiler.guice.module.factory", null);
 
         this.applicationNamespace = readString("profiler.application.namespace", "");
+
+        this.customMetricEnable = readBoolean("profiler.custommetric.enable", false);
+        this.customMetricLimitSize = readInt("profiler.custommetric.limit.size", 10);
 
         logger.info("configuration loaded successfully.");
     }
@@ -902,8 +659,9 @@ public class DefaultProfilerConfig implements ProfilerConfig {
         sb.append(", httpStatusCodeErrors=").append(httpStatusCodeErrors);
         sb.append(", injectionModuleFactoryClazzName='").append(injectionModuleFactoryClazzName).append('\'');
         sb.append(", applicationNamespace='").append(applicationNamespace).append('\'');
+        sb.append(", customMetricEnable=").append(customMetricEnable).append('\'');
+        sb.append(", customMetricLimitSize=").append(customMetricLimitSize);
         sb.append('}');
         return sb.toString();
     }
-
 }

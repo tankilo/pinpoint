@@ -37,12 +37,11 @@ public class RewriteForV2Filter implements Filter {
 
     private static final Log logger = LogFactory.getLog(RewriteForV2Filter.class);
     public static final String DEFAULT_INDEX = "/index.html";
-    private static boolean isDebug = logger.isDebugEnabled();
+    private static final boolean isDebug = logger.isDebugEnabled();
 
     private static final char PATH_DELIMITER = '/';
 
     private final String[] rewriteTargetArray = {
-            "/admin",
             "/error",
             "/filteredMap",
             "/inspector",
@@ -54,7 +53,8 @@ public class RewriteForV2Filter implements Filter {
             "/transactionList",
             "/transactionView",
             "/browserNotSupported",
-            "/config"
+            "/config",
+            "/auth"
     };
 
     private final String PINPOINT_REST_API_SUFFIX = ".pinpoint";

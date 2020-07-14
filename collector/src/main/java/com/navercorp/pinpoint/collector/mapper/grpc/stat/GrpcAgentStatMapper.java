@@ -29,6 +29,7 @@ import com.navercorp.pinpoint.common.server.bo.stat.JvmGcBo;
 import com.navercorp.pinpoint.common.server.bo.stat.JvmGcDetailedBo;
 import com.navercorp.pinpoint.common.server.bo.stat.ResponseTimeBo;
 import com.navercorp.pinpoint.common.server.bo.stat.TransactionBo;
+import com.navercorp.pinpoint.common.server.bo.stat.TotalThreadCountBo;
 import com.navercorp.pinpoint.grpc.Header;
 import com.navercorp.pinpoint.grpc.server.ServerContext;
 import com.navercorp.pinpoint.grpc.trace.PActiveTrace;
@@ -43,43 +44,51 @@ import com.navercorp.pinpoint.grpc.trace.PJvmGc;
 import com.navercorp.pinpoint.grpc.trace.PJvmGcDetailed;
 import com.navercorp.pinpoint.grpc.trace.PResponseTime;
 import com.navercorp.pinpoint.grpc.trace.PTransaction;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.navercorp.pinpoint.grpc.trace.PTotalThread;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Objects;
 
 @Component
 public class GrpcAgentStatMapper {
 
-    @Autowired
-    private GrpcJvmGcBoMapper jvmGcBoMapper;
+    private final GrpcJvmGcBoMapper jvmGcBoMapper;
 
-    @Autowired
-    private GrpcJvmGcDetailedBoMapper jvmGcDetailedBoMapper;
+    private final GrpcJvmGcDetailedBoMapper jvmGcDetailedBoMapper;
 
-    @Autowired
-    private GrpcCpuLoadBoMapper cpuLoadBoMapper;
+    private final GrpcCpuLoadBoMapper cpuLoadBoMapper;
 
-    @Autowired
-    private GrpcTransactionBoMapper transactionBoMapper;
+    private final GrpcTransactionBoMapper transactionBoMapper;
 
-    @Autowired
-    private GrpcActiveTraceBoMapper activeTraceBoMapper;
+    private final GrpcActiveTraceBoMapper activeTraceBoMapper;
 
-    @Autowired
-    private GrpcDataSourceBoMapper dataSourceBoMapper;
+    private final GrpcDataSourceBoMapper dataSourceBoMapper;
 
-    @Autowired
-    private GrpcResponseTimeBoMapper responseTimeBoMapper;
+    private final GrpcResponseTimeBoMapper responseTimeBoMapper;
 
-    @Autowired
-    private GrpcDeadlockThreadCountBoMapper deadlockThreadCountBoMapper;
+    private final GrpcDeadlockThreadCountBoMapper deadlockThreadCountBoMapper;
 
-    @Autowired
-    private GrpcFileDescriptorBoMapper fileDescriptorBoMapper;
+    private final GrpcFileDescriptorBoMapper fileDescriptorBoMapper;
 
-    @Autowired
-    private GrpcDirectBufferBoMapper directBufferBoMapper;
+    private final GrpcDirectBufferBoMapper directBufferBoMapper;
+
+    private final GrpcTotalThreadCountBoMapper totalThreadCountBoMapper;
+
+    public GrpcAgentStatMapper(GrpcJvmGcBoMapper jvmGcBoMapper, GrpcJvmGcDetailedBoMapper jvmGcDetailedBoMapper, GrpcCpuLoadBoMapper cpuLoadBoMapper, GrpcTransactionBoMapper transactionBoMapper, GrpcActiveTraceBoMapper activeTraceBoMapper, GrpcDataSourceBoMapper dataSourceBoMapper, GrpcResponseTimeBoMapper responseTimeBoMapper, GrpcDeadlockThreadCountBoMapper deadlockThreadCountBoMapper, GrpcFileDescriptorBoMapper fileDescriptorBoMapper, GrpcDirectBufferBoMapper directBufferBoMapper, GrpcTotalThreadCountBoMapper totalThreadCountBoMapper) {
+        this.jvmGcBoMapper = Objects.requireNonNull(jvmGcBoMapper, "jvmGcBoMapper");
+        this.jvmGcDetailedBoMapper = Objects.requireNonNull(jvmGcDetailedBoMapper, "jvmGcDetailedBoMapper");
+        this.cpuLoadBoMapper = Objects.requireNonNull(cpuLoadBoMapper, "cpuLoadBoMapper");
+        this.transactionBoMapper = Objects.requireNonNull(transactionBoMapper, "transactionBoMapper");
+        this.activeTraceBoMapper = Objects.requireNonNull(activeTraceBoMapper, "activeTraceBoMapper");
+        this.dataSourceBoMapper = Objects.requireNonNull(dataSourceBoMapper, "dataSourceBoMapper");
+        this.responseTimeBoMapper = Objects.requireNonNull(responseTimeBoMapper, "responseTimeBoMapper");
+        this.deadlockThreadCountBoMapper = Objects.requireNonNull(deadlockThreadCountBoMapper, "deadlockThreadCountBoMapper");
+        this.fileDescriptorBoMapper = Objects.requireNonNull(fileDescriptorBoMapper, "fileDescriptorBoMapper");
+        this.directBufferBoMapper = Objects.requireNonNull(directBufferBoMapper, "directBufferBoMapper");
+        this.totalThreadCountBoMapper = Objects.requireNonNull(totalThreadCountBoMapper, "totalThreadCountBoMapper");
+    }
+
 
     public AgentStatBo map(PAgentStat agentStat) {
         if (agentStat == null) {
@@ -179,6 +188,14 @@ public class GrpcAgentStatMapper {
             final DirectBufferBo directBufferBo = this.directBufferBoMapper.map(directBuffer);
             setBaseData(directBufferBo, agentId, startTimestamp, timestamp);
             agentStatBo.setDirectBufferBos(Collections.singletonList(directBufferBo));
+        }
+
+        // totalThreadCount
+        if (agentStat.hasTotalThread()) {
+            final PTotalThread totalThread = agentStat.getTotalThread();
+            final TotalThreadCountBo totalThreadCountBo = this.totalThreadCountBoMapper.map(totalThread);
+            setBaseData(totalThreadCountBo, agentId, startTimestamp, timestamp);
+            agentStatBo.setTotalThreadCountBos(Collections.singletonList(totalThreadCountBo));
         }
 
         return agentStatBo;

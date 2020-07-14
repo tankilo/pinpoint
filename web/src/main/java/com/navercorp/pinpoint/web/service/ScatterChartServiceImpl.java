@@ -22,19 +22,20 @@ import com.navercorp.pinpoint.web.dao.ApplicationTraceIndexDao;
 import com.navercorp.pinpoint.web.dao.TraceDao;
 import com.navercorp.pinpoint.web.filter.Filter;
 import com.navercorp.pinpoint.web.scatter.ScatterData;
+import com.navercorp.pinpoint.web.util.ListListUtils;
+import com.navercorp.pinpoint.web.scatter.ScatterDataBuilder;
 import com.navercorp.pinpoint.web.vo.GetTraceInfo;
 import com.navercorp.pinpoint.web.vo.Range;
-import com.navercorp.pinpoint.web.vo.SelectedScatterArea;
 import com.navercorp.pinpoint.web.vo.scatter.Dot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author netspider
@@ -45,35 +46,20 @@ public class ScatterChartServiceImpl implements ScatterChartService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private ApplicationTraceIndexDao applicationTraceIndexDao;
+    private final ApplicationTraceIndexDao applicationTraceIndexDao;
 
-    @Autowired
-    @Qualifier("hbaseTraceDaoFactory")
-    private TraceDao traceDao;
+    private final TraceDao traceDao;
 
-    @Override
-    public List<Dot> selectScatterData(String applicationName, SelectedScatterArea area, TransactionId offsetTransactionId, int offsetTransactionElapsed, int limit) {
-        if (applicationName == null) {
-            throw new NullPointerException("applicationName");
-        }
-        if (area == null) {
-            throw new NullPointerException("area");
-        }
-        return applicationTraceIndexDao.scanTraceScatter(applicationName, area, offsetTransactionId, offsetTransactionElapsed, limit);
+    public ScatterChartServiceImpl(ApplicationTraceIndexDao applicationTraceIndexDao, @Qualifier("hbaseTraceDaoFactory") TraceDao traceDao) {
+        this.applicationTraceIndexDao = Objects.requireNonNull(applicationTraceIndexDao, "applicationTraceIndexDao");
+        this.traceDao = Objects.requireNonNull(traceDao, "traceDao");
     }
 
     @Override
-    public List<Dot> selectScatterData(List<TransactionId> transactionIdList, String applicationName, Filter filter) {
-        if (transactionIdList == null) {
-            throw new NullPointerException("transactionIdList");
-        }
-        if (applicationName == null) {
-            throw new NullPointerException("applicationName");
-        }
-        if (filter == null) {
-            throw new NullPointerException("filter");
-        }
+    public List<Dot> selectScatterData(List<TransactionId> transactionIdList, String applicationName, Filter<List<SpanBo>> filter) {
+        Objects.requireNonNull(transactionIdList, "transactionIdList");
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(filter, "filter");
 
         final List<List<SpanBo>> traceList = traceDao.selectAllSpans(transactionIdList);
 
@@ -101,46 +87,30 @@ public class ScatterChartServiceImpl implements ScatterChartService {
      */
     @Override
     public List<SpanBo> selectTransactionMetadata(final List<GetTraceInfo> getTraceInfoList) {
-        if (getTraceInfoList == null) {
-            throw new NullPointerException("query");
-        }
+        Objects.requireNonNull(getTraceInfoList, "getTraceInfoList");
+
         final List<List<SpanBo>> selectedSpans = traceDao.selectSpans(getTraceInfoList);
 
-
-        final List<SpanBo> result = new ArrayList<>(getTraceInfoList.size());
-        for (List<SpanBo> spans : selectedSpans) {
-            result.addAll(spans);
-        }
-
-        return result;
+        return ListListUtils.toList(selectedSpans, getTraceInfoList.size());
     }
 
     @Override
     public ScatterData selectScatterData(String applicationName, Range range, int xGroupUnit, int yGroupUnit, int limit, boolean backwardDirection) {
-        if (applicationName == null) {
-            throw new NullPointerException("applicationName");
-        }
-        if (range == null) {
-            throw new NullPointerException("range");
-        }
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(range, "range");
+
         return applicationTraceIndexDao.scanTraceScatterData(applicationName, range, xGroupUnit, yGroupUnit, limit, backwardDirection);
     }
 
     @Override
-    public ScatterData selectScatterData(List<TransactionId> transactionIdList, String applicationName, Range range, int xGroupUnit, int yGroupUnit, Filter filter) {
-        if (transactionIdList == null) {
-            throw new NullPointerException("transactionIdList");
-        }
-        if (applicationName == null) {
-            throw new NullPointerException("applicationName");
-        }
-        if (filter == null) {
-            throw new NullPointerException("filter");
-        }
+    public ScatterData selectScatterData(List<TransactionId> transactionIdList, String applicationName, Range range, int xGroupUnit, int yGroupUnit, Filter<List<SpanBo>> filter) {
+        Objects.requireNonNull(transactionIdList, "transactionIdList");
+        Objects.requireNonNull(applicationName, "applicationName");
+        Objects.requireNonNull(filter, "filter");
 
         final List<List<SpanBo>> traceList = traceDao.selectAllSpans(transactionIdList);
 
-        ScatterData scatterData = new ScatterData(range.getFrom(), range.getTo(), xGroupUnit, yGroupUnit);
+        ScatterDataBuilder scatterData = new ScatterDataBuilder(range.getFrom(), range.getTo(), xGroupUnit, yGroupUnit);
         for (List<SpanBo> trace : traceList) {
             if (!filter.include(trace)) {
                 continue;
@@ -155,7 +125,7 @@ public class ScatterChartServiceImpl implements ScatterChartService {
             }
         }
 
-        return scatterData;
+        return scatterData.build();
     }
 
 }

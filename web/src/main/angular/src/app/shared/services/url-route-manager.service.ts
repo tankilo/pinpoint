@@ -47,7 +47,9 @@ export class UrlRouteManagerService {
         const baseUrl = [startPath, realTimePath, applicationPath];
         const finalUrl = this.newUrlStateNotificationService.hasValue(UrlPathId.AGENT_ID) ? [...baseUrl, this.newUrlStateNotificationService.getPathValue(UrlPathId.AGENT_ID)] : baseUrl;
 
-        this.router.navigate(finalUrl);
+        this.router.navigate(finalUrl, {
+            queryParamsHandling: 'preserve'
+        });
     }
 
     moveToConfigPage(type: string): void {
@@ -113,20 +115,20 @@ export class UrlRouteManagerService {
         return this.windowRef.nativeWindow.open(`${this.getBaseHref()}${pathStr}${queryStr ? `?${queryStr}` : ''}`, metaInfo);
     }
 
-    openInspectorPage(isRealTimeMode: boolean, selectedAgent: string): void {
+    openInspectorPage(isRealTimeMode: boolean, selectedApp: string, selectedAgent: string): void {
         isRealTimeMode ?
             this.openPage({
                 path: [
                     UrlPath.INSPECTOR,
                     UrlPath.REAL_TIME,
-                    this.newUrlStateNotificationService.getPathValue(UrlPathId.APPLICATION).getUrlStr(),
+                    selectedApp,
                     selectedAgent
                 ]
             }) :
             this.openPage({
                 path: [
                     UrlPath.INSPECTOR,
-                    this.newUrlStateNotificationService.getPathValue(UrlPathId.APPLICATION).getUrlStr(),
+                    selectedApp,
                     this.newUrlStateNotificationService.getPathValue(UrlPathId.PERIOD).getValueWithTime(),
                     this.newUrlStateNotificationService.getPathValue(UrlPathId.END_TIME).getEndTime(),
                     selectedAgent

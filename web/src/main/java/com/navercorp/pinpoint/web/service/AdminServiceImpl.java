@@ -23,7 +23,6 @@ import com.navercorp.pinpoint.web.vo.Range;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +33,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -49,12 +49,14 @@ public class AdminServiceImpl implements AdminService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private ApplicationIndexDao applicationIndexDao;
+    private final ApplicationIndexDao applicationIndexDao;
 
-    @Autowired
-    @Qualifier("jvmGcDaoFactory")
-    private JvmGcDao jvmGcDao;
+    private final JvmGcDao jvmGcDao;
+
+    public AdminServiceImpl(ApplicationIndexDao applicationIndexDao, @Qualifier("jvmGcDaoFactory") JvmGcDao jvmGcDao) {
+        this.applicationIndexDao = Objects.requireNonNull(applicationIndexDao, "applicationIndexDao");
+        this.jvmGcDao = Objects.requireNonNull(jvmGcDao, "jvmGcDao");
+    }
 
     @Override
     public void removeApplicationName(String applicationName) {
@@ -154,7 +156,7 @@ public class AdminServiceImpl implements AdminService {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, durationDays * -1);
         final long fromTimestamp = cal.getTimeInMillis();
-        Range queryRange = new Range(fromTimestamp, toTimestamp);
+        Range queryRange = Range.newRange(fromTimestamp, toTimestamp);
         for (String agentId : agentIds) {
             // FIXME This needs to be done with a more accurate information.
             // If at any time a non-java agent is introduced, or an agent that does not collect jvm data,

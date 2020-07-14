@@ -30,8 +30,8 @@ import java.util.Arrays;
 /**
  * @author Woonduk Kang(emeroad)
  */
-@TestPropertySource(locations = "classpath:batch.properties",
-        properties = {"batch.enable=true", "batch.flink.server=1,2"})
+@TestPropertySource(locations = "classpath:batch-root.properties",
+        properties = {"batch.flink.server=1,2"})
 @ContextConfiguration(classes = BatchConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BatchConfigurationTest {
@@ -44,6 +44,19 @@ public class BatchConfigurationTest {
         Assert.assertEquals("release", configuration.getBatchEnv());
         Assert.assertEquals("127.0.0.127", configuration.getBatchServerIp());
         Assert.assertEquals(Arrays.asList("1", "2"), configuration.getFlinkServerList());
+    }
+
+    @Test
+    public void cleanupInactiveAgentsConfigurationTest() {
+        configuration.setup();
+
+        boolean enableCleanupInactiveAgents = configuration.isEnableCleanupInactiveAgents();
+        String cleanupInactiveAgentsCron = configuration.getCleanupInactiveAgentsCron();
+        int cleanupInactiveAgentsDurationDays = configuration.getCleanupInactiveAgentsDurationDays();
+
+        Assert.assertEquals(false, enableCleanupInactiveAgents);
+        Assert.assertEquals("0 0 0 29 2 ?", cleanupInactiveAgentsCron);
+        Assert.assertEquals(30, cleanupInactiveAgentsDurationDays);
     }
 
 }

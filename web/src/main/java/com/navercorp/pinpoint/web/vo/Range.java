@@ -16,7 +16,7 @@
 
 package com.navercorp.pinpoint.web.vo;
 
-import com.navercorp.pinpoint.common.util.DateUtils;
+import com.navercorp.pinpoint.common.server.util.DateTimeFormatUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,27 +26,22 @@ import java.util.concurrent.TimeUnit;
  */
 public final class Range {
 
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
     private final long from;
     private final long to;
 
-    public Range(long from, long to) {
+    private Range(long from, long to) {
         this.from = from;
         this.to = to;
-        validate();
     }
 
-    public Range(long from, long to, boolean check) {
-        this.from = from;
-        this.to = to;
-        if (check) {
-            validate();
-        }
+    public static Range newRange(long from, long to) {
+        final Range range = new Range(from, to);
+        validate(range);
+        return range;
     }
 
-    public static Range createUncheckedRange(long from, long to) {
-        return new Range(from, to, false);
+    public static Range newUncheckedRange(long from, long to) {
+        return new Range(from, to);
     }
 
     public long getFrom() {
@@ -54,7 +49,7 @@ public final class Range {
     }
 
     public String getFromDateTime() {
-        return DateUtils.longToDateStr(from, DATE_TIME_FORMAT);
+        return DateTimeFormatUtils.formatSimple(from);
     }
 
     public long getTo() {
@@ -62,16 +57,16 @@ public final class Range {
     }
 
     public String getToDateTime() {
-        return DateUtils.longToDateStr(to, DATE_TIME_FORMAT);
+        return DateTimeFormatUtils.formatSimple(from);
     }
 
     public long getRange() {
         return to - from;
     }
 
-    public void validate() {
-        if (this.to < this.from) {
-            throw new IllegalArgumentException("invalid range:" + this);
+    public static void validate(Range range) {
+        if (range.to < range.from) {
+            throw new IllegalArgumentException("invalid range:" + range);
         }
     }
 

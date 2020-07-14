@@ -16,9 +16,9 @@
 
 package com.navercorp.pinpoint.web.controller;
 
-import com.navercorp.pinpoint.common.server.bo.SpanBo;
-import com.navercorp.pinpoint.common.util.DateUtils;
 import com.navercorp.pinpoint.common.profiler.util.TransactionId;
+import com.navercorp.pinpoint.common.server.bo.SpanBo;
+import com.navercorp.pinpoint.common.server.util.DateTimeFormatUtils;
 import com.navercorp.pinpoint.loader.service.ServiceTypeRegistryService;
 import com.navercorp.pinpoint.web.applicationmap.ApplicationMap;
 import com.navercorp.pinpoint.web.applicationmap.FilterMapWrap;
@@ -53,7 +53,7 @@ public class FilteredMapController {
     private FilteredMapService filteredMapService;
 
     @Autowired
-    private FilterBuilder<SpanBo> filterBuilder;
+    private FilterBuilder<List<SpanBo>> filterBuilder;
 
     @Autowired
     private ServiceTypeRegistryService registry;
@@ -99,20 +99,20 @@ public class FilteredMapController {
         }
 
         limit = LimitUtils.checkRange(limit);
-        final Filter<SpanBo> filter = filterBuilder.build(filterText, filterHint);
-        final Range range = new Range(from, to);
+        final Filter<List<SpanBo>> filter = filterBuilder.build(filterText, filterHint);
+        final Range range = Range.newRange(from, to);
         final LimitedScanResult<List<TransactionId>> limitedScanResult = filteredMapService.selectTraceIdsFromApplicationTraceIndex(applicationName, range, limit);
 
         final long lastScanTime = limitedScanResult.getLimitedTime();
         // original range: needed for visual chart data sampling
-        final Range originalRange = new Range(from, originTo);
+        final Range originalRange = Range.newRange(from, originTo);
         // needed to figure out already scanned ranged
-        final Range scannerRange = new Range(lastScanTime, to);
+        final Range scannerRange = Range.newRange(lastScanTime, to);
         logger.debug("originalRange:{} scannerRange:{} ", originalRange, scannerRange);
         ApplicationMap map = filteredMapService.selectApplicationMapWithScatterData(limitedScanResult.getScanData(), originalRange, scannerRange, xGroupUnit, yGroupUnit, filter, viewVersion);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("getFilteredServerMapData range scan(limit:{}) range:{} lastFetchedTimestamp:{}", limit, range.prettyToString(), DateUtils.longToDateStr(lastScanTime));
+            logger.debug("getFilteredServerMapData range scan(limit:{}) range:{} lastFetchedTimestamp:{}", limit, range.prettyToString(), DateTimeFormatUtils.format(lastScanTime));
         }
 
         FilterMapWrap mapWrap = new FilterMapWrap(map);

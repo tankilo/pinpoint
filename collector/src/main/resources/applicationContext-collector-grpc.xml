@@ -15,8 +15,8 @@
     <bean id="collectorGrpcProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="locations">
             <list>
-                <value>classpath:pinpoint-collector-grpc.properties</value>
-                <value>classpath:profiles/${pinpoint.profiles.active}/pinpoint-collector-grpc-env.properties</value>
+                <value>classpath:pinpoint-collector-grpc-root.properties</value>
+                <value>classpath:profiles/${pinpoint.profiles.active}/pinpoint-collector-grpc.properties</value>
             </list>
         </property>
         <property name="fileEncoding" value="UTF-8"/>
@@ -44,8 +44,8 @@
     </bean>
 
     <bean id="grpcDispatchHandlerFactoryBean" class="com.navercorp.pinpoint.collector.receiver.thrift.DispatchHandlerFactoryBean">
-        <constructor-arg index="0" ref="grpcTcpDispatchHandler"/>
-        <constructor-arg index="1" ref="handlerManager"/>
+        <property name="dispatchHandler" ref="grpcTcpDispatchHandler"/>
+        <property name="handlerManager" ref="handlerManager"/>
     </bean>
 
     <bean id="grpcSpanDispatchHandler" class="com.navercorp.pinpoint.collector.receiver.SpanDispatchHandler">
@@ -53,8 +53,8 @@
         <constructor-arg index="1" ref="grpcSpanChunkHandler"/>
     </bean>
     <bean id="grpcSpanDispatchHandlerFactoryBean" class="com.navercorp.pinpoint.collector.receiver.thrift.DispatchHandlerFactoryBean">
-        <constructor-arg index="0" ref="grpcSpanDispatchHandler"/>
-        <constructor-arg index="1" ref="handlerManager"/>
+        <property name="dispatchHandler" ref="grpcSpanDispatchHandler"/>
+        <property name="handlerManager" ref="handlerManager"/>
     </bean>
 
     <bean id="grpcStatDispatchHandler" class="com.navercorp.pinpoint.collector.receiver.StatDispatchHandler">
@@ -62,8 +62,8 @@
         <constructor-arg index="1" ref="grpcAgentEventHandler"/>
     </bean>
     <bean id="grpcStatDispatchHandlerFactoryBean" class="com.navercorp.pinpoint.collector.receiver.thrift.DispatchHandlerFactoryBean">
-        <constructor-arg index="0" ref="grpcStatDispatchHandler"/>
-        <constructor-arg index="1" ref="handlerManager"/>
+        <property name="dispatchHandler" ref="grpcStatDispatchHandler"/>
+        <property name="handlerManager" ref="handlerManager"/>
     </bean>
 
     <bean id="grpcAgentWorkerExecutor" class="com.navercorp.pinpoint.collector.receiver.thrift.ExecutorFactoryBean" parent="abstractReceiverExecutorFactoryBean">
@@ -125,6 +125,16 @@
         <ref bean="commandService"/>
     </util:list>
 
+    <util:list id="interceptorList" value-type="io.grpc.ServerInterceptor">
+        <ref bean="headerPropagationInterceptor"/>
+    </util:list>
+
+    <bean id="headerRader" class="com.navercorp.pinpoint.grpc.server.AgentHeaderReader"/>
+
+    <bean id="headerPropagationInterceptor" class="com.navercorp.pinpoint.grpc.server.HeaderPropagationInterceptor">
+        <constructor-arg index="0" ref="headerRader"/>
+    </bean>
+
     <bean id="grpcAgentServerExecutor" class="com.navercorp.pinpoint.collector.receiver.thrift.ExecutorFactoryBean" parent="abstractReceiverExecutorFactoryBean">
         <property name="corePoolSize" value="#{grpcAgentReceiverConfig.grpcServerExecutorThreadSize}"/>
         <property name="maxPoolSize" value="#{grpcAgentReceiverConfig.grpcServerExecutorThreadSize}"/>
@@ -139,6 +149,7 @@
         <property name="executor" ref="grpcAgentServerExecutor"/>
         <property name="addressFilter" ref="addressFilter"/>
         <property name="bindableServiceList" ref="agentServiceList"/>
+        <property name="serverInterceptorList" ref="interceptorList"/>
         <property name="enable" value="#{grpcAgentReceiverConfig.isGrpcEnable()}"/>
         <property name="serverOption" value="#{grpcAgentReceiverConfig.getGrpcServerOption()}"/>
     </bean>
@@ -189,6 +200,7 @@
         <property name="bindPort" value="#{grpcSpanReceiverConfig.grpcBindPort}"/>
         <property name="addressFilter" ref="addressFilter"/>
         <property name="bindableServiceList" ref="spanServiceList"/>
+        <property name="serverInterceptorList" ref="interceptorList"/>
         <property name="executor" ref="grpcSpanServerExecutor"/>
         <property name="enable" value="#{grpcSpanReceiverConfig.isGrpcEnable()}"/>
         <property name="serverOption" value="#{grpcSpanReceiverConfig.getGrpcServerOption()}"/>
@@ -241,6 +253,7 @@
         <property name="bindPort" value="#{grpcStatReceiverConfig.grpcBindPort}"/>
         <property name="addressFilter" ref="addressFilter"/>
         <property name="bindableServiceList" ref="statServiceList"/>
+        <property name="serverInterceptorList" ref="interceptorList"/>
         <property name="executor" ref="grpcStatServerExecutor"/>
         <property name="enable" value="#{grpcStatReceiverConfig.isGrpcEnable()}"/>
         <property name="serverOption" value="#{grpcStatReceiverConfig.getGrpcServerOption()}"/>

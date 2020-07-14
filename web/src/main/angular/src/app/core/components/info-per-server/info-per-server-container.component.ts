@@ -104,7 +104,12 @@ export class InfoPerServerContainerComponent implements OnInit, OnDestroy {
                 return this.agentHistogramDataService.getData(node.key, node.applicationName, node.serviceTypeCode, this.serverMapData, range).pipe(
                     tap((histogramData = {}) => {
                         this.agentHistogramData = { isWas: node.isWas, ...histogramData };
-                        this.onSelectAgent(this.selectedAgent ? this.selectedAgent : this.getFirstAgent());
+                        this.selectedAgent = this.selectedAgent ? this.selectedAgent : this.getFirstAgent();
+                        this.storeHelperService.dispatch(new Actions.ChangeAgentForServerList({
+                            agent: this.selectedAgent,
+                            responseSummary: this.agentHistogramData['agentHistogram'][this.selectedAgent],
+                            load: this.agentHistogramData['agentTimeSeriesHistogram'][this.selectedAgent]
+                        }));
                     })
                 );
             })
@@ -147,7 +152,7 @@ export class InfoPerServerContainerComponent implements OnInit, OnDestroy {
     }
 
     onSelectAgent(agent: string): void {
-        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.SELECT_AGENT);
+        this.analyticsService.trackEvent(TRACKED_EVENT_LIST.SELECT_AGENT_ON_SERVER_LIST_VIEW);
         this.storeHelperService.dispatch(new Actions.ChangeAgentForServerList({
             agent,
             responseSummary: this.agentHistogramData['agentHistogram'][agent],
@@ -158,6 +163,6 @@ export class InfoPerServerContainerComponent implements OnInit, OnDestroy {
 
     onOpenInspector(agent: string): void {
         this.analyticsService.trackEvent(TRACKED_EVENT_LIST.OPEN_INSPECTOR_WITH_AGENT);
-        this.urlRouteManagerService.openInspectorPage(false, agent);
+        this.urlRouteManagerService.openInspectorPage(false, this.selectedTarget.node[0].replace('^', '@'), agent);
     }
 }

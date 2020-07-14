@@ -7,24 +7,24 @@
 
 **Visit [our official web site](http://naver.github.io/pinpoint/) for more information and [Latest updates on Pinpoint](https://naver.github.io/pinpoint/news.html)**.
 
-## Latest Release (2020/03/12)
+## Latest Release (2020/06/18)
 
-We're happy to announce the release of Pinpoint v2.0.1.
-Please check the release note at (https://github.com/naver/pinpoint/releases/tag/v2.0.1).
+We're happy to announce the release of Pinpoint v2.0.3.
+Please check the release note at (https://github.com/naver/pinpoint/releases/tag/v2.0.3).
 
-The current stable version is [v2.0.1](https://github.com/naver/pinpoint/releases/tag/v2.0.1).
+The current stable version is [v2.0.3](https://github.com/naver/pinpoint/releases/tag/v2.0.3).
 
 ## Live Demo
 
-Take a quick look at Pinpoint with our [demo](http://125.209.240.10:10123/v2/main/ApiGateway@SPRING_BOOT/5m?inbound=1&outbound=4&wasOnly=false&bidirectional=false)!
+Take a quick look at Pinpoint with our [demo](http://125.209.240.10:10123/main/ApiGateway@SPRING_BOOT/5m?inbound=1&outbound=4&wasOnly=false&bidirectional=false)!
 
-## PHP Agent
+## PHP, PYTHON
 
-Pinpoint also supports application written in PHP. [Check-out our php-agent repository](https://github.com/naver/pinpoint-c-agent).
+Pinpoint also supports application written in PHP, Python. [Check-out our agent repository](https://github.com/naver/pinpoint-c-agent).
 
 ## About Pinpoint
 
-**Pinpoint** is an APM (Application Performance Management) tool for large-scale distributed systems written in Java / [PHP](https://github.com/naver/pinpoint-c-agent).
+**Pinpoint** is an APM (Application Performance Management) tool for large-scale distributed systems written in Java / [PHP](https://github.com/naver/pinpoint-c-agent)/[PYTHON]((https://github.com/naver/pinpoint-c-agent)).
 Inspired by [Dapper](http://research.google.com/pubs/pub36356.html "Google Dapper"),
 Pinpoint provides a solution to help analyze the overall structure of the system and how components within them are interconnected by tracing transactions across distributed applications.
 
@@ -37,8 +37,8 @@ You should definitely check **Pinpoint** out If you want to
 * have minimal impact on the performance (approximately 3% increase in resource usage)
 
 ## Getting Started
- * [Quick-start guide](https://naver.github.io/pinpoint/1.7.3/quickstart.html) for simple test run of Pinpoint
- * [Installation guide](https://naver.github.io/pinpoint/1.7.3/installation.html) for further instructions.
+ * [Quick-start guide](https://naver.github.io/pinpoint/quickstart.html) for simple test run of Pinpoint
+ * [Installation guide](https://naver.github.io/pinpoint/installation.html) for further instructions.
  
 ## Overview
 Services nowadays often consist of many different components, communicating amongst themselves as well as making API calls to external services. How each and every transaction gets executed is often left as a blackbox. Pinpoint traces transaction flows between these components and provides a clear view to identify problem areas and potential bottlenecks.<br/>

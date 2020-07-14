@@ -40,14 +40,14 @@ public class ModuleSupport {
 
     private final JavaModule javaBaseModule;
     private final JavaModule bootstrapModule;
-    private List<String> allowedProviders;
+    private final List<String> allowedProviders;
 
     ModuleSupport(Instrumentation instrumentation, List<String> allowedProviders) {
         if (instrumentation == null) {
             throw new NullPointerException("instrumentation");
         }
         if (allowedProviders == null) {
-            throw new NullPointerException("instrumentation");
+            throw new NullPointerException("allowedProviders");
         }
         this.instrumentation = instrumentation;
         this.javaBaseModule = wrapJavaModule(Object.class);
@@ -135,9 +135,15 @@ public class ModuleSupport {
         // for Java9DefineClass
         baseModule.addExports("jdk.internal.misc", agentModule);
         final JvmVersion version = JvmUtils.getVersion();
-        if(version.onOrAfter(JvmVersion.JAVA_12)) {
-            baseModule.addExports("jdk.internal.access", agentModule);
+        if (version.onOrAfter(JvmVersion.JAVA_11)) {
+            final String internalAccessModule = "jdk.internal.access";
+            if (baseModule.getPackages().contains(internalAccessModule)) {
+                baseModule.addExports(internalAccessModule, agentModule);
+            } else {
+                logger.info(internalAccessModule + " package not found");
+            }
         }
+
         agentModule.addReads(baseModule);
 
         final JavaModule instrumentModule = loadModule("java.instrument");
@@ -187,10 +193,7 @@ public class ModuleSupport {
     }
 
     public boolean isAllowedProvider(String serviceName) {
-        for (String allowedProvider : this.allowedProviders) {
-            return allowedProvider.equals(serviceName);
-        }
-        return false;
+        return allowedProviders.contains(serviceName);
     }
 
     private List<Class<?>> loadProviderClassList(List<String> classNameList, ClassLoader classLoader) {

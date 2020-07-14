@@ -25,9 +25,9 @@ import com.navercorp.pinpoint.pluginit.jdbc.template.CallableStatementCallback;
 import com.navercorp.pinpoint.pluginit.jdbc.template.DriverManagerDataSource;
 import com.navercorp.pinpoint.pluginit.jdbc.template.PreparedStatementSetter;
 import com.navercorp.pinpoint.pluginit.jdbc.template.ResultSetExtractor;
-import com.navercorp.pinpoint.pluginit.jdbc.template.TransactionDataSource;
 import com.navercorp.pinpoint.pluginit.jdbc.template.SimpleJdbcTemplate;
 import com.navercorp.pinpoint.pluginit.jdbc.template.TransactionCallback;
+import com.navercorp.pinpoint.pluginit.jdbc.template.TransactionDataSource;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -98,10 +97,6 @@ public abstract class DataBaseTestCase {
     @After
     public void deregisterDriver() {
         DriverManagerUtils.deregisterDriver();
-    }
-
-    protected Connection connectDB() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl, databaseId, databaseIdPassword);
     }
 
     public static class User {
@@ -221,17 +216,14 @@ public abstract class DataBaseTestCase {
         final String storedProcedureQuery = "{ call concatCharacters(?, ?, ?) }";
 
 
-        final SimpleJdbcTemplate template = new SimpleJdbcTemplate(this.dataSource);
+        final SimpleJdbcTemplate template = new SimpleJdbcTemplate(this.dataSource, SimpleJdbcTemplate.ConnectionInterceptor.EMPTY);
         String result = template.execute(storedProcedureQuery, new CallableStatementCallback<String>() {
             @Override
             public String doInCallableStatement(CallableStatement cs) throws SQLException {
                 cs.setString(1, param1);
                 cs.setString(2, param2);
                 cs.registerOutParameter(3, Types.VARCHAR);
-                final boolean execute = cs.execute();
-                if (!execute) {
-                    throw new SQLException("execute fail");
-                }
+                cs.execute();
                 return cs.getString(3);
             }
         });
@@ -292,7 +284,7 @@ public abstract class DataBaseTestCase {
         final int param2 = 2;
         final String storedProcedureQuery = "{ call swapAndGetSum(?, ?) }";
 
-        final SimpleJdbcTemplate template = new SimpleJdbcTemplate(this.dataSource);
+        final SimpleJdbcTemplate template = new SimpleJdbcTemplate(this.dataSource, SimpleJdbcTemplate.ConnectionInterceptor.EMPTY);
         SwapResult result = template.execute(storedProcedureQuery, new CallableStatementCallback<SwapResult>() {
             @Override
             public SwapResult doInCallableStatement(CallableStatement cs) throws SQLException {

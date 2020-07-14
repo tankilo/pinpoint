@@ -24,6 +24,7 @@ import com.navercorp.pinpoint.web.service.stat.ApplicationResponseTimeService;
 import com.navercorp.pinpoint.web.service.stat.ApplicationStatChartService;
 import com.navercorp.pinpoint.web.service.stat.ApplicationTransactionService;
 import com.navercorp.pinpoint.web.service.stat.ApplicationFileDescriptorService;
+import com.navercorp.pinpoint.web.service.stat.ApplicationTotalThreadCountService;
 import com.navercorp.pinpoint.web.util.TimeWindow;
 import com.navercorp.pinpoint.web.util.TimeWindowSlotCentricSampler;
 import com.navercorp.pinpoint.web.vo.Range;
@@ -57,7 +58,7 @@ public class ApplicationStatController {
     @ResponseBody
     public StatChart getAgentStatChart(@RequestParam("applicationId") String applicationId, @RequestParam("from") long from, @RequestParam("to") long to) {
         TimeWindowSlotCentricSampler sampler = new TimeWindowSlotCentricSampler();
-        TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+        TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
         try {
             return this.applicationStatChartService.selectApplicationChart(applicationId, timeWindow);
         } catch (Exception e ) {
@@ -116,7 +117,7 @@ public class ApplicationStatController {
     public static class ApplicationDataSourceController {
 
         private final Logger logger = LoggerFactory.getLogger(this.getClass());
-        private ApplicationDataSourceService applicationDataSourceService;
+        private final ApplicationDataSourceService applicationDataSourceService;
 
         @Autowired
         public ApplicationDataSourceController(ApplicationDataSourceService applicationDataSourceService) {
@@ -127,7 +128,7 @@ public class ApplicationStatController {
         @ResponseBody
         public List<StatChart> getAgentStatChart(@RequestParam("applicationId") String applicationId, @RequestParam("from") long from, @RequestParam("to") long to) {
             TimeWindowSlotCentricSampler sampler = new TimeWindowSlotCentricSampler();
-            TimeWindow timeWindow = new TimeWindow(new Range(from, to), sampler);
+            TimeWindow timeWindow = new TimeWindow(Range.newRange(from, to), sampler);
             try {
                 return this.applicationDataSourceService.selectApplicationChart(applicationId, timeWindow);
             } catch (Exception e ) {
@@ -152,6 +153,15 @@ public class ApplicationStatController {
         @Autowired
         public ApplicationDirectBufferController(ApplicationDirectBufferService applicationDirectBufferService) {
             super(applicationDirectBufferService);
+        }
+    }
+
+    @Controller
+    @RequestMapping("/getApplicationStat/totalThreadCount/chart")
+    public static class ApplicationTotalThreadCountController extends ApplicationStatController {
+        @Autowired
+        public ApplicationTotalThreadCountController(ApplicationTotalThreadCountService applicationTotalThreadCountService) {
+            super(applicationTotalThreadCountService);
         }
     }
 }
