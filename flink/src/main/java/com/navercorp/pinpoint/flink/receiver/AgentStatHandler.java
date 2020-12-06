@@ -16,7 +16,7 @@
 package com.navercorp.pinpoint.flink.receiver;
 
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
 import com.navercorp.pinpoint.flink.vo.RawData;
 import com.navercorp.pinpoint.io.request.ServerRequest;
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext;

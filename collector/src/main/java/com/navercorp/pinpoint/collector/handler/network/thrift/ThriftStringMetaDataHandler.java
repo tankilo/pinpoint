@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.thrift;
+package com.navercorp.pinpoint.collector.handler.network.thrift;
 
-import com.navercorp.pinpoint.collector.handler.RequestResponseHandler;
-import com.navercorp.pinpoint.collector.service.SqlMetaDataService;
-import com.navercorp.pinpoint.common.server.bo.SqlMetaDataBo;
+import com.navercorp.pinpoint.collector.handler.network.RequestResponseHandler;
+import com.navercorp.pinpoint.collector.service.StringMetaDataService;
+import com.navercorp.pinpoint.common.server.bo.StringMetaDataBo;
 import com.navercorp.pinpoint.io.request.ServerRequest;
 import com.navercorp.pinpoint.io.request.ServerResponse;
 import com.navercorp.pinpoint.thrift.dto.TResult;
-import com.navercorp.pinpoint.thrift.dto.TSqlMetaData;
+import com.navercorp.pinpoint.thrift.dto.TStringMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,15 +33,15 @@ import java.util.Objects;
  * @author emeroad
  */
 @Service
-public class ThriftSqlMetaDataHandler implements RequestResponseHandler {
+public class ThriftStringMetaDataHandler implements RequestResponseHandler {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final SqlMetaDataService sqlMetaDataService;
+    private final StringMetaDataService stringMetaDataService;
 
-    public ThriftSqlMetaDataHandler(SqlMetaDataService sqlMetaDataService) {
-        this.sqlMetaDataService = Objects.requireNonNull(sqlMetaDataService, "sqlMetaDataService");
+    public ThriftStringMetaDataHandler(StringMetaDataService stringMetaDataService) {
+        this.stringMetaDataService = Objects.requireNonNull(stringMetaDataService, "stringMetaDataService");
     }
-
 
     @Override
     public void handleRequest(ServerRequest serverRequest, ServerResponse serverResponse) {
@@ -50,21 +50,21 @@ public class ThriftSqlMetaDataHandler implements RequestResponseHandler {
             logger.debug("Handle request data={}", data);
         }
 
-        if (data instanceof TSqlMetaData) {
-            Object result = handleSqlMetaData((TSqlMetaData) data);
+        if (data instanceof TStringMetaData) {
+            Object result = handleStringMetaData((TStringMetaData) data);
             serverResponse.write(result);
         } else {
             logger.warn("invalid serverRequest:{}", serverRequest);
         }
     }
 
-    private Object handleSqlMetaData(TSqlMetaData sqlMetaData) {
+    private Object handleStringMetaData(TStringMetaData stringMetaData) {
         try {
-            final SqlMetaDataBo sqlMetaDataBo = new SqlMetaDataBo(sqlMetaData.getAgentId(), sqlMetaData.getAgentStartTime(), sqlMetaData.getSqlId());
-            sqlMetaDataBo.setSql(sqlMetaData.getSql());
-            sqlMetaDataService.insert(sqlMetaDataBo);
+            final StringMetaDataBo stringMetaDataBo = new StringMetaDataBo(stringMetaData.getAgentId(), stringMetaData.getAgentStartTime(), stringMetaData.getStringId());
+            stringMetaDataBo.setStringValue(stringMetaData.getStringValue());
+            stringMetaDataService.insert(stringMetaDataBo);
         } catch (Exception e) {
-            logger.warn("Failed to handle SqlMetaData={}, Caused:{}", sqlMetaData, e.getMessage(), e);
+            logger.warn("Failed to handle stringMetaData={}, Caused:{}", stringMetaData, e.getMessage(), e);
             final TResult result = new TResult(false);
             result.setMessage(e.getMessage());
             return result;

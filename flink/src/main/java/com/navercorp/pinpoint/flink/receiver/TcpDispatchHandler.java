@@ -15,7 +15,7 @@
  */
 package com.navercorp.pinpoint.flink.receiver;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
 import com.navercorp.pinpoint.collector.receiver.DispatchHandler;
 import com.navercorp.pinpoint.io.header.Header;
 import com.navercorp.pinpoint.io.request.ServerRequest;

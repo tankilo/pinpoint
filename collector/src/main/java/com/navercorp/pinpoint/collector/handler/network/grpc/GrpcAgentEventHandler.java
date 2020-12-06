@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.grpc;
+package com.navercorp.pinpoint.collector.handler.network.grpc;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.storage.HandlerExecutionChain;
 import com.navercorp.pinpoint.collector.mapper.grpc.event.GrpcAgentEventBatchMapper;
 import com.navercorp.pinpoint.collector.mapper.grpc.event.GrpcAgentEventMapper;
 import com.navercorp.pinpoint.collector.service.AgentEventService;
@@ -34,6 +35,7 @@ import com.navercorp.pinpoint.io.request.ServerRequest;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,16 +55,15 @@ public class GrpcAgentEventHandler implements SimpleHandler {
 
     private final AgentEventMessageSerializerV1 agentEventMessageSerializerV1;
 
-    private final AgentEventService agentEventService;
+    private final HandlerExecutionChain handlerExecutionChain;
 
     public GrpcAgentEventHandler(GrpcAgentEventMapper agentEventMapper,
                                  GrpcAgentEventBatchMapper agentEventBatchMapper,
-                                 AgentEventMessageSerializerV1 agentEventMessageSerializerV1,
-                                 AgentEventService agentEventService) {
+                                 AgentEventMessageSerializerV1 agentEventMessageSerializerV1, HandlerExecutionChain handlerExecutionChain) {
         this.agentEventMapper = Objects.requireNonNull(agentEventMapper, "agentEventMapper");
         this.agentEventBatchMapper = Objects.requireNonNull(agentEventBatchMapper, "agentEventBatchMapper");
         this.agentEventMessageSerializerV1 = Objects.requireNonNull(agentEventMessageSerializerV1, "agentEventMessageSerializerV1");
-        this.agentEventService = Objects.requireNonNull(agentEventService, "agentEventService");
+        this.handlerExecutionChain = Objects.requireNonNull(handlerExecutionChain, "handlerExecutionChain");
     }
 
     @Override
@@ -122,7 +123,7 @@ public class GrpcAgentEventHandler implements SimpleHandler {
         final Object eventMessage = getEventMessage(agentEventBo);
         final byte[] eventBody = agentEventMessageSerializerV1.serialize(agentEventBo.getEventType(), eventMessage);
         agentEventBo.setEventBody(eventBody);
-        this.agentEventService.insert(agentEventBo);
+        this.handlerExecutionChain.handle(agentEventBo);
     }
 
     private Object getEventMessage(AgentEventBo agentEventBo) {

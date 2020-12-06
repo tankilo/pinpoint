@@ -1,17 +1,34 @@
+/*
+ * Copyright 2019 NAVER Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-package com.navercorp.pinpoint.collector.handler.grpc;
+package com.navercorp.pinpoint.collector.handler.network.grpc;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.storage.HandlerExecutionChain;
 import com.navercorp.pinpoint.collector.service.TraceService;
-import com.navercorp.pinpoint.common.server.bo.SpanChunkBo;
+import com.navercorp.pinpoint.common.server.bo.SpanBo;
 import com.navercorp.pinpoint.common.server.bo.grpc.GrpcSpanFactory;
 import com.navercorp.pinpoint.grpc.Header;
 import com.navercorp.pinpoint.grpc.MessageFormatUtils;
 import com.navercorp.pinpoint.grpc.server.ServerContext;
-import com.navercorp.pinpoint.grpc.trace.PSpanChunk;
+import com.navercorp.pinpoint.grpc.trace.PSpan;
 import com.navercorp.pinpoint.grpc.trace.PSpanEvent;
 import com.navercorp.pinpoint.grpc.trace.PTransactionId;
 import com.navercorp.pinpoint.io.request.ServerRequest;
+
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,65 +40,64 @@ import java.util.Objects;
 
 /**
  * @author emeroad
+ * @author netspider
  */
 @Service
-public class GrpcSpanChunkHandler implements SimpleHandler {
+public class GrpcSpanHandler implements SimpleHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final boolean isDebug = logger.isDebugEnabled();
 
-    private final TraceService traceService;
+    private final HandlerExecutionChain handlerExecutionChain;
 
     private final GrpcSpanFactory spanFactory;
 
     @Autowired
-    public GrpcSpanChunkHandler(TraceService traceService, GrpcSpanFactory spanFactory) {
-        this.traceService = Objects.requireNonNull(traceService, "traceService");
+    public GrpcSpanHandler(HandlerExecutionChain handlerExecutionChain, GrpcSpanFactory spanFactory) {
+        this.handlerExecutionChain = Objects.requireNonNull(handlerExecutionChain, "traceService");
         this.spanFactory = Objects.requireNonNull(spanFactory, "spanFactory");
     }
 
     @Override
     public void handleSimple(ServerRequest serverRequest) {
         final Object data = serverRequest.getData();
-        if (data instanceof PSpanChunk) {
-            handleSpanChunk((PSpanChunk) data);
+        if (data instanceof PSpan) {
+            handleSpan((PSpan) data);
         } else {
             logger.warn("Invalid request type. serverRequest={}", serverRequest);
             throw Status.INTERNAL.withDescription("Bad Request(invalid request type)").asRuntimeException();
         }
     }
 
-
-    private void handleSpanChunk(PSpanChunk spanChunk) {
+    private void handleSpan(PSpan span) {
         if (isDebug) {
-            logger.debug("Handle PSpanChunk={}", createSimpleSpanChunkLog(spanChunk));
+            logger.debug("Handle PSpan={}", createSimpleSpanLog(span));
         }
 
         try {
-            final Header agentInfo = ServerContext.getAgentInfo();
-            final SpanChunkBo spanChunkBo = spanFactory.buildSpanChunkBo(spanChunk, agentInfo);
-            this.traceService.insertSpanChunk(spanChunkBo);
+            Header agentInfo = ServerContext.getAgentInfo();
+            final SpanBo spanBo = spanFactory.buildSpanBo(span, agentInfo);
+            handlerExecutionChain.handle(spanBo);
         } catch (Exception e) {
-            logger.warn("Failed to handle spanChunk={}", MessageFormatUtils.debugLog(spanChunk), e);
+            logger.warn("Failed to handle span={}", MessageFormatUtils.debugLog(span), e);
         }
     }
 
-    private String createSimpleSpanChunkLog(PSpanChunk spanChunk) {
+    private String createSimpleSpanLog(PSpan span) {
         if (!isDebug) {
             return "";
         }
 
         StringBuilder log = new StringBuilder();
 
-        PTransactionId transactionId = spanChunk.getTransactionId();
+        PTransactionId transactionId = span.getTransactionId();
         log.append(" transactionId:");
         log.append(MessageFormatUtils.debugLog(transactionId));
 
-        log.append(" spanId:").append(spanChunk.getSpanId());
-
+        log.append(" spanId:").append(span.getSpanId());
 
         StringBuilder spanEventSequenceLog = new StringBuilder();
-        List<PSpanEvent> spanEventList = spanChunk.getSpanEventList();
+        List<PSpanEvent> spanEventList = span.getSpanEventList();
         for (PSpanEvent pSpanEvent : spanEventList) {
             if (pSpanEvent == null) {
                 continue;

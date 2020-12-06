@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.thrift;
+package com.navercorp.pinpoint.collector.handler.network.thrift;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
 import com.navercorp.pinpoint.collector.service.TraceService;
-import com.navercorp.pinpoint.common.server.bo.SpanBo;
+import com.navercorp.pinpoint.common.server.bo.SpanChunkBo;
 
 import com.navercorp.pinpoint.common.server.bo.thrift.SpanFactory;
 import com.navercorp.pinpoint.io.request.ServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.navercorp.pinpoint.thrift.dto.TSpan;
+import com.navercorp.pinpoint.thrift.dto.TSpanChunk;
 
 import org.springframework.stereotype.Service;
 
@@ -33,10 +33,9 @@ import java.util.Objects;
 
 /**
  * @author emeroad
- * @author netspider
  */
 @Service
-public class ThriftSpanHandler implements SimpleHandler {
+public class ThriftSpanChunkHandler implements SimpleHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -44,7 +43,7 @@ public class ThriftSpanHandler implements SimpleHandler {
 
     private final SpanFactory spanFactory;
 
-    public ThriftSpanHandler(TraceService traceService, SpanFactory spanFactory) {
+    public ThriftSpanChunkHandler(TraceService traceService, SpanFactory spanFactory) {
         this.traceService = Objects.requireNonNull(traceService, "traceService");
         this.spanFactory = Objects.requireNonNull(spanFactory, "spanFactory");
     }
@@ -55,20 +54,19 @@ public class ThriftSpanHandler implements SimpleHandler {
         if (logger.isDebugEnabled()) {
             logger.debug("Handle simple data={}", data);
         }
-
-        if (data instanceof TSpan) {
-            handleSpan((TSpan) data);
+        if (data instanceof TSpanChunk) {
+            handleSpanChunk((TSpanChunk) data);
         } else {
             throw new UnsupportedOperationException("data is not support type : " + data);
         }
     }
 
-    private void handleSpan(TSpan tSpan) {
+    private void handleSpanChunk(TSpanChunk tbase) {
         try {
-            final SpanBo spanBo = spanFactory.buildSpanBo(tSpan);
-            traceService.insertSpan(spanBo);
+            final SpanChunkBo spanChunkBo = this.spanFactory.buildSpanChunkBo(tbase);
+            this.traceService.insertSpanChunk(spanChunkBo);
         } catch (Exception e) {
-            logger.warn("Failed to handle Span={}, Caused:{}", tSpan, e.getMessage(), e);
+            logger.warn("Failed to handle SpanChunk={}, Caused={}", tbase, e.getMessage(), e);
         }
     }
 }

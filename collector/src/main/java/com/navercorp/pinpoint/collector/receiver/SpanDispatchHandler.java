@@ -16,7 +16,7 @@
 
 package com.navercorp.pinpoint.collector.receiver;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
 import com.navercorp.pinpoint.io.header.Header;
 import com.navercorp.pinpoint.io.request.ServerRequest;
 import com.navercorp.pinpoint.io.request.ServerResponse;

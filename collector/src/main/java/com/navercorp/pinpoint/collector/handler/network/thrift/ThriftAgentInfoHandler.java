@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.thrift;
+package com.navercorp.pinpoint.collector.handler.network.thrift;
 
-import com.navercorp.pinpoint.collector.handler.SimpleAndRequestResponseHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleAndRequestResponseHandler;
 import com.navercorp.pinpoint.collector.mapper.thrift.ThriftAgentInfoBoMapper;
 import com.navercorp.pinpoint.collector.service.AgentInfoService;
 import com.navercorp.pinpoint.common.server.bo.AgentInfoBo;

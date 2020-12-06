@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.thrift;
+package com.navercorp.pinpoint.collector.handler.network.thrift;
 
-import com.navercorp.pinpoint.collector.handler.SimpleHandler;
+import com.navercorp.pinpoint.collector.handler.network.SimpleHandler;
 import com.navercorp.pinpoint.collector.mapper.thrift.stat.ThriftAgentStatBatchMapper;
 import com.navercorp.pinpoint.collector.mapper.thrift.stat.ThriftAgentStatMapper;
 import com.navercorp.pinpoint.collector.service.AgentStatService;

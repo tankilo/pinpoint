@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.grpc;
+package com.navercorp.pinpoint.collector.handler.network.grpc;
 
-import com.navercorp.pinpoint.collector.handler.RequestResponseHandler;
+import com.navercorp.pinpoint.collector.handler.network.RequestResponseHandler;
 import com.navercorp.pinpoint.collector.service.StringMetaDataService;
 import com.navercorp.pinpoint.common.server.bo.StringMetaDataBo;
 import com.navercorp.pinpoint.grpc.Header;

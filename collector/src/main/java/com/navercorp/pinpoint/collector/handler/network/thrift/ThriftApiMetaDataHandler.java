@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.navercorp.pinpoint.collector.handler.thrift;
+package com.navercorp.pinpoint.collector.handler.network.thrift;
 
-import com.navercorp.pinpoint.collector.handler.RequestResponseHandler;
+import com.navercorp.pinpoint.collector.handler.network.RequestResponseHandler;
 import com.navercorp.pinpoint.collector.service.ApiMetaDataService;
 import com.navercorp.pinpoint.common.server.bo.ApiMetaDataBo;
 import com.navercorp.pinpoint.common.server.bo.MethodTypeEnum;
