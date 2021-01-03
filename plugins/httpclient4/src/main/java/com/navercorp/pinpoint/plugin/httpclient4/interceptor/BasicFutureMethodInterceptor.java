@@ -43,6 +43,10 @@ public class BasicFutureMethodInterceptor extends AsyncContextSpanEventSimpleAro
     @Override
     protected void doInAfterTrace(SpanEventRecorder recorder, Object target, Object[] args, Object result, Throwable throwable) {
         recorder.recordApi(methodDescriptor);
-        recorder.recordException(throwable);
+        if ("failed".equals(methodDescriptor.getMethodName()) && args.length == 1 && args[0] instanceof Exception) {
+            recorder.recordException((Exception) args[0]);
+        } else {
+            recorder.recordException(throwable);
+        }
     }
 }
